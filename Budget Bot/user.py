@@ -30,7 +30,7 @@ class User():
         return True
 
     def listCategories(self):
-        return ('category', self.budget[0])
+        return api.read('category', self.budget[0])
 
     def createTransaction(self, categoryName, amount): 
         data = api.read('category', self.budget[0], {'name': categoryName})
@@ -46,7 +46,7 @@ class User():
         return data
 
     def getSum(self, month):
-        data = api.request(requests.get, 'budget', 'sum', self.budget[0], {'date': month})
+        data = api.request(requests.post, 'budget', 'sum', self.budget[0], {'date': str(month)})
         return data
 
     def listTransactions(self, first, last):

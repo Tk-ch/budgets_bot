@@ -5,6 +5,7 @@ DOMAIN = 'http://localhost:8000/budgets/api/'
 class APIHandler():
 
     def request(requestType, objectType, command, pk = '', data = {}):
+        resp = None
         try:
             resp = requestType(f'{DOMAIN}{objectType}/{command}/{pk}', json = data)
             return resp.json()

@@ -161,7 +161,7 @@ def balance(user):
     data = user.getBalance()
     if not data: 
         return 'Баланс не доступен, прикол', markups['default']
-    return 'Баланс исходя из текущих транзакций: ' + str(data['balance']), markups['default']
+    return 'Баланс исходя из текущих транзакций: {:.2f}'.format(data['balance']), markups['default']
 
 def getSum(user):
     if user.budget[0] == '':
