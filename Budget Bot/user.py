@@ -7,8 +7,8 @@ users = {}
 class User():
     budget = ['', 0]
     chat = 0
-    cmd = {}
-    questions = []
+    command = None
+    commandData = {}
 
     def parse(self, msg):
         return Command.parseMessage(self, msg)
