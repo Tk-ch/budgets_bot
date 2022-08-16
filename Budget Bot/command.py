@@ -1,28 +1,18 @@
 from datetime import datetime
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from dateutil.relativedelta import relativedelta
+from cmdFunctions import *
 import dateutil.parser
 import math
 
 #doing stuff in CMD class in this branch
 
-markups = {
-    'start': ReplyKeyboardMarkup(True, True).row('Создать бюджет', 'Присоединить'), 
-    'none': ReplyKeyboardRemove(), 
-    'cancel': ReplyKeyboardMarkup(True, True).add("Отмена"), 
-    'default': ReplyKeyboardMarkup(True, True).add('Добавить транзакцию').row('Добавить категорию', 'Добавить покупку'),
-    'manage': ReplyKeyboardMarkup(True, True).row('Изменить', 'Удалить').add('Отмена')
-}
 
 class Command(): 
     def __init__(self, name, func):
         self.name = name
         self.func = func
 
-    def getMarkup(user):
-         if user.budget[0] != '':
-             return markups['default']
-         return markups['start'] 
+    
 
     def applyDefaultMarkup(user, message):
         try:
@@ -30,7 +20,7 @@ class Command():
             message, markup = result
         except Exception as e:
             message = result
-            markup = Command.getMarkup(user)
+            markup = getMarkup(user)
         finally:
             return message, markup
 
@@ -55,11 +45,48 @@ class Command():
                 return "Не понял"
 
 commands = [
-    Command(['start'], lambda *_: "Привет команды тут"), 
+    Command(['start'], lambda *_: """Привет! Команды тута
+         /create - создаёт бюджет  
+         /connect - соединяет тебя с существующим бюджетом
+         /balance - показывает текущий баланс
+         /sum - рассчитывает остаток в конце месяца (от дохода отнимаются все траты по категориям)
+         /category - добавить категорию
+         /transactions - вывести транзакции
+         /categories - вывести категории и их остатки за месяц
+         /taxes - taxes
+     Для добавления транзакций можно ввести любое число
+     Транзакции следует вводить отрицательными - так проще вводить частые расходы без минуса, а редкие доходы с минусом
+         TODO: 
+         /yearly - годовой прогноз
+         /addpurchase - добавить запланированную покупку
+         /completepurchase - выполнить покупку (создастся транзакция по цене покупки)
+         /removepurchase - удалить покупку"""), 
+    Command(['create', 'создать бюджет'], [
+    lambda user, _: ("Один бюджет уже подключен. Создание нового бюджета его отключит. Введи сумму если хочешь продолжить", markups['cancel']) if user.budget != '' else ("Введи сумму бюджета", markups['cancel']),
+    create
+    ]),
     Command(['connect', 'подключить'], [
     lambda user, _: ("Точно? Один бюджет уже подключен. Введи ID:", markups['cancel']) if user.budget[0] != '' else ("Введи ID: ", markups['cancel']), 
-    lambda user, message: "хэхэ"
-    ])
+    connect
+    ]), 
+    Command(['cancel', 'отмена'], cancel), 
+    Command('taxes', 
+    [lambda *_: ("""Сколько процентов нологов плотить? 
+#         до 471$ - 25%
+#         471$ - 718$ - 50%
+#         718$ - 1224$ - 75%
+#         1224$+ - 100%
+#         ========================
+#         Введи доход в гривнах:
+#         """, markups['cancel']), 
+    taxesIncome,
+    taxesCalculate]
+    ), 
+    Command(['category', 'добавить категорию'],
+    lambda *_:("Введи имя категории", markups['cancel']),
+     
+    ), 
+
 ]
 
 # class Question():

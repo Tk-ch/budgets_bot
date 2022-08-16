@@ -11,7 +11,7 @@ class User():
     commandData = {}
 
     def parse(self, msg):
-        return Command.parseMessage(self, msg)
+        return Command.applyDefaultMarkup(self, msg)
 
     def createBudget(self, income):
         data = api.create('budget', {'income': income})
