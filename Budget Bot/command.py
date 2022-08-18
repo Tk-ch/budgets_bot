@@ -1,4 +1,3 @@
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from cmdFunctions import *
 import dateutil.parser
@@ -35,7 +34,10 @@ class Command():
             return command[0].func(user, message) #there's only one function
         try: #checking if user has a chain of commands
             command = next(user.command)
-            return command(user, message)
+            out = command(user, message)
+            if out == -1:
+                raise
+            return out
         except:
             try:
                 amount = float(message)
@@ -83,9 +85,26 @@ commands = [
     taxesCalculate]
     ), 
     Command(['category', 'добавить категорию'],
-    lambda *_:("Введи имя категории", markups['cancel']),
-     
+    [
+        lambda *_:("Введи имя категории", markups['cancel']),
+        categoryName, categoryBudget
+    ]
     ), 
+    Command(['transaction', 'добавить транзакцию'], 
+    [
+        lambda *_: ("Введи количество деняк", markups['cancel']), 
+        transactionCategory, transactionCreate
+    ]),
+    Command(['purchase', 'добавить покупку'], [
+        lambda *_: ("Назови свою покупку", markups['cancel']),
+        purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate
+    ]), 
+    Command('balance', balance), 
+    Command('sum', getSum), 
+    Command('transactions', transactions),
+    Command('categories', categories),
+    Command('purchases', [purchases, purchaseInfo])
+
 
 ]
 

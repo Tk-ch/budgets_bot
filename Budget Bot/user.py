@@ -13,6 +13,9 @@ class User():
     def parse(self, msg):
         return Command.applyDefaultMarkup(self, msg)
 
+    def deleteObject(self, objectType, pk):
+        return api.delete(objectType, pk)
+
     def createBudget(self, income):
         data = api.create('budget', {'income': income})
         if not data:
@@ -58,6 +61,9 @@ class User():
     def createPurchase(self, amount, comment, date):
         return api.create('purchase', {'amount': amount, 'comment': comment, 'date': str(date), 'budget': self.budget[1]})
 
+    def createPurchase(self, pk, amount, comment, date):
+        return api.update('purchase', pk, {'amount': amount, 'comment': comment, 'date': str(date), 'budget': self.budget[1]})
+    
     def completePurchase(self, id):
         data = api.request(requests.get, 'purchase', 'complete', id)
         return data

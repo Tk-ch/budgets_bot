@@ -4,7 +4,7 @@ from conf import API_KEY
 
 bot = telebot.TeleBot(API_KEY)
 
-with open('data.p', 'rb') as fp:
+with open('Budget Bot/data.p', 'rb') as fp:
     users = pickle.load(fp)
 
 def save_users():
