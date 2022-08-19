@@ -9,8 +9,8 @@ with open('Budget Bot/data.p', 'rb') as fp:
 
 def save_users():
     for user in users:
-        users[user].cmd = {}
-        users[user].questions = []
+        users[user].commandData = {}
+        users[user].command = None
     with open('data.p', 'wb') as fp:
         pickle.dump(users, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -27,7 +27,7 @@ def setup(message):
     user = makeUser(message.chat.id)
     return (text, user)
 
-@bot.message_handler()
+@bot.message_handler(content_types=['text'])
 def handle(message):
     text, user = setup(message)
     text = text.lstrip('/')

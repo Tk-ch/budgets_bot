@@ -44,6 +44,9 @@ class User():
     def createCategory(self, name, amount):
         return api.create(('category'), {'amount': amount, 'name': name, 'budget': self.budget[1], 'visible': True})
     
+    def updateCategory(self, pk, name, amount):
+        return api.update(('category'), pk, {'amount': amount, 'name': name, 'budget': self.budget[1], 'visible': True})
+    
     def getBalance(self):
         data = api.request(requests.get, 'budget', 'balance', self.budget[0])
         return data
@@ -61,7 +64,7 @@ class User():
     def createPurchase(self, amount, comment, date):
         return api.create('purchase', {'amount': amount, 'comment': comment, 'date': str(date), 'budget': self.budget[1]})
 
-    def createPurchase(self, pk, amount, comment, date):
+    def updatePurchase(self, pk, amount, comment, date):
         return api.update('purchase', pk, {'amount': amount, 'comment': comment, 'date': str(date), 'budget': self.budget[1]})
     
     def completePurchase(self, id):

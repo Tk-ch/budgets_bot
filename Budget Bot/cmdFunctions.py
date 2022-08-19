@@ -37,7 +37,7 @@ def create(user, message):
         return "Бюджет создан - ID: " + str(budget), markups['default']
     except:
         user.command = iter([create])
-        return "Ошибка - введи число"
+        return "Ошибка - введи число", markups['cancel']
     
 def cancel(user, _):
     user.command = None
@@ -48,10 +48,10 @@ def taxesIncome(user, message):
     try:
         income = float(message)
         user.commandData['income'] = income
-        return "Введи процент нологов"
+        return "Введи процент нологов", markups['cancel']
     except:
         user.command = iter([taxesIncome, taxesCalculate])
-        return "Не число."
+        return "Не число.", markups['cancel']
 
 def taxesCalculate(user, message):
     try:
@@ -65,7 +65,7 @@ def taxesCalculate(user, message):
         return f'Твой доход: {money} грн.'
     except: 
         user.command = iter([taxesCalculate])
-        return "Не число"
+        return "Не число", markups['cancel']
 
 def categoryName(user, message):
     if user.budget[0] == '':
@@ -77,7 +77,11 @@ def categoryBudget(user, message):
     try: 
         budget = float(message.strip())
         name = user.commandData.pop('name')
-        data = user.createCategory(name, budget)
+        try:
+            pk = user.commandData.pop('pk')
+            data = user.updateCategory(pk, name, budget)
+        except:
+            data = user.createCategory(name, budget)
         try: 
             amount = user.commandData.pop('amount')
             transaction = user.createTransaction(data['name'], user.commandData.pop('amount'))
@@ -87,7 +91,7 @@ def categoryBudget(user, message):
                 out = ''
         except:
             out = ''
-        return f"Категория {data['name']} с бюджетом {data['amount']} была создана" + out, markups['default']
+        return f"Категория {data['name']} с бюджетом {data['amount']} была создана/отредактирована" + out, markups['default']
     except:
         user.command = iter([categoryBudget])
         return "Не число", markups['cancel']
@@ -134,7 +138,7 @@ def purchaseYear(user, message):
         return "Введи год покупки", markup
     except:
         user.command = iter([purchaseYear, purchaseMonth, purchaseCreate])
-        return "Не число"
+        return "Не число", markups['cancel']
 
 def purchaseMonth(user, message):
     try: 
@@ -147,18 +151,16 @@ def purchaseMonth(user, message):
     except Exception as e:
         print(e)
         user.command = iter([purchaseMonth, purchaseCreate])
-        return "Не число"
+        return "Не число", markups['cancel']
 
 def purchaseCreate(user, message):
     try: 
         month = int(message)
         try: 
             pk = user.commandData.pop('pk')
-            purchase = user.updatePurchase(pk, user.commandData.pop('amount'), user.commandData.pop('comment'),
-            datetime(user.commandData.pop('year'), month, 1))
+            purchase = user.updatePurchase(pk, user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 1))
         except:
-            purchase = user.createPurchase(user.commandData.pop('amount'), user.commandData.pop('comment'),
-            datetime(user.commandData.pop('year'), month, 1))
+            purchase = user.createPurchase(user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 1))
         if not purchase:
             return "Непонятные траблы с покупкой", markups['default']
         return "Покупка была создана/отредактирована", markups['default']
@@ -205,7 +207,7 @@ def transactions(user, _):
     for trans in data:
         out += ''.join(['[', str(trans['pk']), '] ', str(dateutil.parser.parse(trans['date']).date()), ': ', str(trans['amount']), ' - ', catnames[trans['category']], '\n'])
 
-    return out, ReplyKeyboardMarkup(True, True).add('Удалить транзакцию')
+    return out, ReplyKeyboardMarkup(True, True).add('Отмена', 'Удалить транзакцию', row_width=1)
 
 def categories(user, _):
     today = datetime.now().replace(tzinfo=None).date()
@@ -225,6 +227,8 @@ def categories(user, _):
     
     markup = ReplyKeyboardMarkup(True, True, row_width=2)
 
+    catnames = [category['name'] for category in categories if category['visible']]
+
     out = 'Категории: \n'
     for category in categories: 
         if not category['visible']:
@@ -239,20 +243,13 @@ def categories(user, _):
             bar += '▒' * math.ceil((category['amount'] - rem) * 30 / category['amount'])
             bar += '\n'
         else:
-            bar = ''
+            bar = '▒'*30
+            bar+='\n'
         out += f"{category['name']}: Бюджет {category['amount']} / Остаток {rem}\n{bar}"
-        markup.add(category['name'])
+    markup.add('Отмена')
+    markup.add(*catnames, row_width=2)
     return out, markup
 
-# def categoriesManage(user, data):
-#     action = data.pop('action')
-#     category = data.pop('category')
-#     if action == "удалить": 
-#         pass
-#     if action == "изменить":
-#         pass
-
-#     return Command.parseMessage(user, action)
 
 def purchases(user, _):
     data = user.listPurchases()
@@ -260,12 +257,12 @@ def purchases(user, _):
         return "Покупки не доступны", markups['default']
     
     markup = ReplyKeyboardMarkup(True, True, row_width=2)
+    markup.add('Отмена')
     out = 'Покупки: \n'
     for purchase in data:
         markup.add(purchase['comment'])
-        out += ''.join([purchase['comment'], ' ', str(purchase['amount']), ' ', str(purchase['date']), '\n'])
-
-    markup.add('Отмена')
+        out += f"{purchase['comment']} {purchase['amount']} {datetime.strftime(dateutil.parser.parse(purchase['date']), '%Y %m')}\n"
+    
     return out, markup
 
 def purchaseInfo(user, message):
@@ -288,5 +285,36 @@ def purchaseManage(user, message):
     if action == "изменить":
         user.commandData['pk'] = purchase
         user.command = iter([purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate])
-        return "Введи новый комментарий к покупке"
+        return "Введи новый комментарий к покупке", markups['cancel']
     return -1 
+
+def categoryInfo(user, message):
+    data = user.listCategories()
+    names = [category['name'].lower() for category in data]
+    if message.lower() in names:
+        #do stuff markups
+        category = list(filter(lambda category: (message.lower().strip() in category['name'].lower().strip()), data))[0]
+        user.command = iter([categoryManage])
+        user.commandData['category'] = category['pk']
+        return f'Категория {category["name"]}\nСтоимость {category["amount"]}', markups['manage']
+    return -1
+
+def categoryManage(user, message):
+     action = message.lower().strip()
+     category = user.commandData.pop('category')
+     if action == "удалить": 
+        user.deleteObject('category', category)
+        return 'Категория удалена'
+     if action == "изменить":
+        user.commandData['pk'] = category
+        user.command = iter([categoryName, categoryBudget])
+        return "Введи новое имя категории", markups['cancel']
+     return -1
+
+def deleteTransaction(user, message):
+    try:
+        id = int(message)
+        user.deleteObject('transaction', id)
+        return 'Транзакция удалена'
+    except: 
+        return 'Не айди', markups['cancel']

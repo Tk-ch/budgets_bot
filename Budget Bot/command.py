@@ -1,10 +1,4 @@
-from dateutil.relativedelta import relativedelta
 from cmdFunctions import *
-import dateutil.parser
-import math
-
-#doing stuff in CMD class in this branch
-
 
 class Command(): 
     def __init__(self, name, func):
@@ -23,8 +17,13 @@ class Command():
         finally:
             return message, markup
 
+    def filterCommand(command, message):
+        if isinstance(command.name, list):
+            return message.lower() in command.name
+        return message.lower() == command.name
+
     def parseMessage(user, message):
-        command = list(filter(lambda command: (message.lower() in command.name), commands))
+        command = list(filter(lambda command: Command.filterCommand(command, message), commands))
         if len(command) > 0: #command entered in a message
             if isinstance(command[0].func, list): #there's a chain of functions
                 user.command = iter(command[0].func)
@@ -36,7 +35,7 @@ class Command():
             command = next(user.command)
             out = command(user, message)
             if out == -1:
-                raise
+                raise Exception()
             return out
         except:
             try:
@@ -102,9 +101,13 @@ commands = [
     Command('balance', balance), 
     Command('sum', getSum), 
     Command('transactions', transactions),
-    Command('categories', categories),
-    Command('purchases', [purchases, purchaseInfo])
-
+    Command('categories', [categories, categoryInfo]),
+    Command('purchases', [purchases, purchaseInfo]),
+    Command(['delete', 'удалить транзакцию'], [
+        lambda *_: ("Введи айдишку кривой транзакции", markups['cancel']),
+        deleteTransaction
+        ]
+    )
 
 ]
 
