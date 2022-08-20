@@ -36,10 +36,8 @@ class Budget(models.Model):
         s = self.income
         date = date.replace(hour = 0, minute = 0, second = 0)
         day1 = date.replace(day = 1)
-        day2 = date.replace(day = 2)
+        day2 = date.replace(day = 3)
         purchases = Purchase.objects.filter(date__lte=day2).filter(date__gte=day1)
-        print(day1)
-        print(day2)
         for category in Category.objects.filter(budget=self):
             s -= category.amount
 
