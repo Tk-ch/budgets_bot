@@ -25,4 +25,7 @@ urlpatterns = [
     path('api/purchase/update/<int:pk>', views.update_purchase, name = 'update-purchase'),
     path('api/purchase/delete/<int:pk>', views.delete_purchase, name = 'delete-purchase'),
     path('api/purchase/complete/<int:pk>', views.complete_purchase, name = 'complete-purchase'),
+
+    path('yearly/<str:linkID>', views.yearly_view, name= 'yearly-view'),
+    path('monthly/<str:linkID>', views.monthly_view, name= 'monthly-view'),
 ]

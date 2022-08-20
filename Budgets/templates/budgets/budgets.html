@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Table of this month</title>
+
+  <style>
+    *{
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+body{
+    font-family: Helvetica;
+    -webkit-font-smoothing: antialiased;
+    background: #2a1e52;
+    color:white;
+}
+h2{
+    text-align: center;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    padding: 30px 0;
+}
+
+/* Table Styles */
+
+.table-wrapper{
+    margin: 10px 35px 35px;
+    box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
+}
+
+.fl-table {
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: normal;
+    border: none;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    background-color: #412184;
+}
+
+.fl-table td, .fl-table th {
+    text-align: center;
+    padding: 8px;
+}
+
+.fl-table td {
+    border-right: 1px solid black;
+    font-size: 12px;
+}
+
+.fl-table thead th {
+    color: #ffffff;
+    background: #4FC3A1;
+}
+
+
+.fl-table thead th:nth-child(odd) {
+    color: #ffffff;
+    background: #412184;
+}
+
+.fl-table tr:nth-child(even) {
+    background: #371c72;
+}
+
+/* Responsive */
+
+@media (max-width: 767px) {
+    .fl-table {
+        display: block;
+        width: 100%;
+    }
+    .table-wrapper:before{
+        content: "Scroll horizontally >";
+        display: block;
+        text-align: right;
+        font-size: 11px;
+        color: white;
+        padding: 0 0 10px;
+    }
+    .fl-table thead, .fl-table tbody, .fl-table thead th {
+        display: block;
+    }
+    .fl-table thead th:last-child{
+        border-bottom: none;
+    }
+    .fl-table thead {
+        float: left;
+    }
+    .fl-table tbody {
+        width: auto;
+        position: relative;
+        overflow-x: auto;
+    }
+    .fl-table td, .fl-table th {
+        padding: 20px .625em .625em .625em;
+        height: 100px;
+        vertical-align: middle;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        overflow-y: auto;
+        width: 130px;
+        font-size: 30px;
+        text-overflow: ellipsis;
+        border:1px solid black;
+    }
+    .fl-table thead th {
+        text-align: left;
+        border-bottom: 1px solid black;
+    }
+    .fl-table tbody tr {
+        display: table-cell;
+    }
+    .fl-table tbody tr:nth-child(odd) {
+        background: none;
+    }
+    .fl-table tr:nth-child(even) {
+        background: #fe8b7a;
+    }
+    .fl-table tr td:nth-child(odd) {
+        background: #fe8b7a;
+        border-right: 1px solid black;
+    }
+    .fl-table tr td:nth-child(even) {
+        border-right: 1px solid black;
+    }
+    .fl-table tbody td {
+        display: block;
+        text-align: center;
+        border:1px solid black;
+    }
+}
+  </style>
+  </head>
+  <body>
+    {% if budgetIncome %}
+      <div style="border-radius: 5px; padding:5px;display: flex; width: 200px; background-color: #fe8b7a; color: #000; margin: 10px 35px 35px;
+      box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );">Доход: {{budgetIncome}}</div>
+    {% endif %}
+    
+    {% if categories %}
+    <div class = 'table-wrapper' style="display:flex; float:left">
+    <table class = 'fl-table'><thead>
+      <td bgcolor="#55289b">Дата</td>
+      {% for category in categories %}
+        <td bgcolor="#55289b">{{category.name}}</td>
+      {% endfor %}
+    </thead>
+    <tbody>
+      <tr>
+        <td bgcolor="#412184"></td>
+      {% for category in categories %}
+        <td>{{category.amount}} грн</td>
+      {% endfor %}
+    </tr>
+    {% if tDict %}
+      {% for tDate in tDates %}
+        <tr>
+          <td bgcolor="#412184">{{tDate}}</td>
+          {%for category in categories%}
+          <td>
+            {%for key, t in tDict.items %}
+              {% if key == tDate %}
+                {%for trans in t%}
+                  {% if trans.category == category %}
+                    <div>{{trans.amount|floatformat:2}} грн</div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </td>
+          {%endfor%}
+        </tr>
+      {% endfor %}
+    {% endif %}
+    {% if remainders %}
+    <tr>
+      <td bgcolor="#55289b">Остаток</td>
+      {% for rem, amount in remainders.items %}
+        <td bgcolor='#55289b'>{{amount|floatformat:2}} грн</td>
+      {% endfor %}
+    </tr>
+    {%endif%}
+  </tbody>    
+    </table>
+  </div>
+  {%endif%}
+  <div class='table-wrapper' style="display:flex; float:left">
+    {% if purchases %}
+    <table class="fl-table">
+      <tr><td bgcolor="#55289b">Покупки</td></tr>
+      {% for purchase in purchases %}
+        <tr><td {%if purchase.done%}bgcolor="#fe8b7a"{%endif%}>{{purchase.comment}}: {{purchase.amount|floatformat:2}} грн</td></tr>
+      {% endfor %}
+      <tr><td bgcolor="#55289b">Сумма: {{pSum|floatformat:2}} грн</td></div>
+    </table>
+      
+    {% endif %}
+  </div>
+  {% if balance %}
+      <div style="border-radius: 5px; display: flex; float:left;  padding:5px; width: 200px; background-color: #fe8b7a; color: #000; margin: 10px 35px 35px;
+      box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );">Баланс: {{balance|floatformat:2}} грн</div>
+  {% endif %}
+  </body>
+</html>
