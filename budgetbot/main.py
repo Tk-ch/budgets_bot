@@ -4,14 +4,14 @@ from conf import API_KEY
 
 bot = telebot.TeleBot(API_KEY)
 
-with open('Budget Bot/data.p', 'rb') as fp:
+with open('budgetbot/data.p', 'rb') as fp:
     users = pickle.load(fp)
 
 def save_users():
     for user in users:
         users[user].commandData = {}
         users[user].command = None
-    with open('data.p', 'wb') as fp:
+    with open('budgetbot.p', 'wb') as fp:
         pickle.dump(users, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
 def makeUser(chat):
