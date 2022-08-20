@@ -9,6 +9,7 @@ class User():
     chat = 0
     command = None
     commandData = {}
+    deletableMessages = []
 
     def parse(self, msg):
         return Command.applyDefaultMarkup(self, msg)
@@ -32,8 +33,8 @@ class User():
         self.budget[1] = data['pk']
         return True
 
-    def listCategories(self):
-        return api.read('category', self.budget[0])
+    def listCategories(self, data = {}):
+        return api.read('category', self.budget[0], data)
 
     def createTransaction(self, categoryName, amount): 
         data = api.read('category', self.budget[0], {'name': categoryName})
@@ -67,6 +68,9 @@ class User():
     def updatePurchase(self, pk, amount, comment, date):
         return api.update('purchase', pk, {'amount': amount, 'comment': comment, 'date': str(date), 'budget': self.budget[1]})
     
+    def updatePurchaseAmount(self, pk, amount):
+        return api.update('purchase', pk, {'amount':amount})
+
     def completePurchase(self, id):
         data = api.request(requests.get, 'purchase', 'complete', id)
         return data

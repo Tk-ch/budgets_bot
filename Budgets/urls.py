@@ -20,7 +20,6 @@ urlpatterns = [
     path('api/transaction/update/<int:pk>', views.update_transaction, name = 'update-transaction'),
     path('api/transaction/delete/<int:pk>', views.delete_transaction, name = 'delete-transaction'),
 
-
     path('api/purchase/create/', views.add_purchase, name = 'add-purchase'),
     path('api/purchase/list/<str:linkID>', views.list_purchases, name = 'list-purchase'),
     path('api/purchase/update/<int:pk>', views.update_purchase, name = 'update-purchase'),

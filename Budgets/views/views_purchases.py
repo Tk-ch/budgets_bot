@@ -36,7 +36,7 @@ def list_purchases(request, linkID):
 @api_view(['POST'])
 def update_purchase(request, pk):
     purchase = Purchase.objects.get(pk = pk)
-    data = PurchaseSerializer(instance=purchase, data=request.data)
+    data = PurchaseSerializer(instance=purchase, data=request.data, partial = True)
   
     if data.is_valid():
         data.save()

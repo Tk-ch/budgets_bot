@@ -20,4 +20,4 @@ class TransactionSerializer(serializers.ModelSerializer):
 class PurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Purchase
-        fields = ('pk', 'amount', 'comment', 'date', 'budget')
+        fields = ('pk', 'amount', 'comment', 'date', 'done', 'budget')

@@ -33,15 +33,15 @@ class Budget(models.Model):
         return balance
 
     def get_sum(self, date):
-        s = 0
-        today = timezone.now().replace(day = 1, hour = 1, tzinfo=None)
-        date = date.replace(day = 1, hour = 0, minute = 0, second = 0,)
-        purchases = Purchase.objects.filter(date__lte=date).filter(date__gte=today)
-        while (today <= date): 
-            today += relativedelta(months=1)
-            s += self.income
-            for category in Category.objects.filter(budget=self):
-                s -= category.amount
+        s = self.income
+        date = date.replace(hour = 0, minute = 0, second = 0)
+        day1 = date.replace(day = 1)
+        day2 = date.replace(day = 2)
+        purchases = Purchase.objects.filter(date__lte=day2).filter(date__gte=day1)
+        print(day1)
+        print(day2)
+        for category in Category.objects.filter(budget=self):
+            s -= category.amount
 
         for purchase in purchases:
             s -= purchase.amount
@@ -79,18 +79,12 @@ class Purchase(models.Model):
     comment = models.CharField(max_length=200)
     date = models.DateTimeField()
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE)
+    done = models.BooleanField(default=False)
 
     def __str__(self):
         return self.comment + ' ' + self.budget.linkID
 
     def complete(self):
-        transaction = Transaction()
-        transaction.budget = self.budget
-        transaction.category = self.budget.get_purchase_category()
-        transaction.amount = self.amount
-        transaction.date = timezone.now()
-        transaction.comment = self.comment + ' - покупка совершена'
-        self.amount = 0
-        transaction.save()
+        self.done = True
         self.save()
         

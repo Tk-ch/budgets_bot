@@ -8,7 +8,7 @@ markups = {
     'start': ReplyKeyboardMarkup(True, True).row('Создать бюджет', 'Присоединить'), 
     'none': ReplyKeyboardRemove(), 
     'cancel': ReplyKeyboardMarkup(True, True).add("Отмена"), 
-    'default': ReplyKeyboardMarkup(True, True).add('Добавить транзакцию').row('Добавить категорию', 'Добавить покупку'),
+    'default': ReplyKeyboardMarkup(True, True).add('Добавить транзакцию').add("Баланс", "Сумма", "Бюджет").add('Категории', "Покупки", "Транзакции", row_width=3).row('Добавить категорию', 'Добавить покупку'),
     'manage': ReplyKeyboardMarkup(True, True).row('Изменить', 'Удалить').add('Отмена')
 }
 
@@ -158,9 +158,9 @@ def purchaseCreate(user, message):
         month = int(message)
         try: 
             pk = user.commandData.pop('pk')
-            purchase = user.updatePurchase(pk, user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 1))
+            purchase = user.updatePurchase(pk, user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 2))
         except:
-            purchase = user.createPurchase(user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 1))
+            purchase = user.createPurchase(user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 2))
         if not purchase:
             return "Непонятные траблы с покупкой", markups['default']
         return "Покупка была создана/отредактирована", markups['default']
@@ -179,9 +179,7 @@ def balance(user, _):
 def getSum(user, _):
     if user.budget[0] == '':
         return noBudget(user)
-    today = datetime.now().replace(tzinfo=None)
-    today += relativedelta(months=1)
-    today = today.replace(day=today.day - 1)
+    today = datetime.now()
     data = user.getSum(today)
     if not data: 
         return 'Остаток не доступен, прикол', markups['default']
@@ -202,10 +200,17 @@ def transactions(user, _):
 
     for category in categories:
         catnames[category['pk']] = category['name']
+    
+    tDates = set([dateutil.parser.parse(t['date']).date() for t in data])
 
+    tDict = {date: [t for t in data if dateutil.parser.parse(t['date']).date() == date] for date in tDates}
+    
     out = 'Транзакции:\n'
-    for trans in data:
-        out += ''.join(['[', str(trans['pk']), '] ', str(dateutil.parser.parse(trans['date']).date()), ': ', str(trans['amount']), ' - ', catnames[trans['category']], '\n'])
+    for i in sorted(tDict.keys()):
+        out += f'{i}:\n'
+        for t in tDict[i]: 
+            out += f'[{t["pk"]}] {catnames[t["category"]]}: {t["amount"]}\n'
+        out += '\n'
 
     return out, ReplyKeyboardMarkup(True, True).add('Отмена', 'Удалить транзакцию', row_width=1)
 
@@ -226,6 +231,8 @@ def categories(user, _):
         catremainders[transaction['category']] -= transaction['amount']
     
     markup = ReplyKeyboardMarkup(True, True, row_width=2)
+
+    categories = sorted(categories,  key = lambda category: category['amount'], reverse = True)
 
     catnames = [category['name'] for category in categories if category['visible']]
 
@@ -257,11 +264,24 @@ def purchases(user, _):
         return "Покупки не доступны", markups['default']
     
     markup = ReplyKeyboardMarkup(True, True, row_width=2)
+
+    pDates = set([dateutil.parser.parse(p['date']).date().replace(day=1) for p in data])
+
+    pDict = {date: [p for p in data if dateutil.parser.parse(p['date']).date().replace(day=1) == date] for date in pDates}
+    out = 'Покупки:\n'
     markup.add('Отмена')
-    out = 'Покупки: \n'
-    for purchase in data:
-        markup.add(purchase['comment'])
-        out += f"{purchase['comment']} {purchase['amount']} {datetime.strftime(dateutil.parser.parse(purchase['date']), '%Y %m')}\n"
+    for i in sorted(pDict.keys()):
+        out += f'{datetime.strftime(i, "%Y-%m")}:\n'
+        for purchase in pDict[i]: 
+            out += f"{purchase['comment']} {purchase['amount']} "
+            if purchase['done']: 
+                out += ' - ✓'
+            else: 
+                markup.add(purchase['comment']) 
+            out += '\n'
+        out += '\n'
+
+
     
     return out, markup
 
@@ -273,7 +293,7 @@ def purchaseInfo(user, message):
         purchase = list(filter(lambda purchase: (message.lower().strip() in purchase['comment'].lower().strip()), data))[0]
         user.command = iter([purchaseManage])
         user.commandData['purchase'] = purchase['pk']
-        return f'Покупка {purchase["comment"]}\nСтоимость {purchase["amount"]}\nДата {purchase["date"]}', markups['manage']
+        return f'Покупка: {purchase["comment"]}\nСтоимость: {purchase["amount"]}\nМесяц: {datetime.strftime(dateutil.parser.parse(purchase["date"]).date(), "%Y-%m")}', ReplyKeyboardMarkup().add('Совершить покупку').add('Изменить', "Удалить", "Отмена", row_width=2)
     return -1
 
 def purchaseManage(user, message):
@@ -286,6 +306,10 @@ def purchaseManage(user, message):
         user.commandData['pk'] = purchase
         user.command = iter([purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate])
         return "Введи новый комментарий к покупке", markups['cancel']
+    if action == "совершить покупку":
+        user.commandData['pk'] = purchase
+        user.command = iter([completePurchase])
+        return "Введи актуальную сумму покупки", markups['cancel']
     return -1 
 
 def categoryInfo(user, message):
@@ -318,3 +342,24 @@ def deleteTransaction(user, message):
         return 'Транзакция удалена'
     except: 
         return 'Не айди', markups['cancel']
+
+def completePurchase(user, message):
+    try: 
+        amount = float(message)
+        purchase = user.commandData.pop('pk')
+        user.updatePurchaseAmount(purchase, amount)
+        user.completePurchase(purchase)
+        user.createTransaction('Покупки', amount)
+        return 'Покупка совершена, транзакция на сумму ' + str(amount) + ' создана'
+    except: 
+        user.command = iter([completePurchase])
+        return 'Не число', markups['cancel']
+
+def yearly(user, _):
+    out = ''
+    s = 0
+    today = datetime.now()
+    for i in range(today.month, 13):
+        s += user.getSum(today.replace(month = i))["sum"]
+        out += f'Сумма на месяц {i}: {s}\n'
+    return out

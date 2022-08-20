@@ -40,8 +40,17 @@ class Command():
         except:
             try:
                 amount = float(message)
-                #do transaction code here
-                return "Да да это число"
+                user.command = iter([transactionCreate])
+                user.commandData['amount'] = amount
+                categories = user.listCategories()
+                if not categories: 
+                    return "Блин, это ж число но категории сдохли", markups['default']
+                markup = ReplyKeyboardMarkup()
+                markup.add("Создать")
+                rows = [category['name'] for category in categories if category['visible']]
+                markup.add(*rows, row_width=2)
+                markup.add("Отмена")
+                return "Выглядит как транзакция, выбери категорию", markup
             except:
                 return "Не понял"
 
@@ -98,16 +107,17 @@ commands = [
         lambda *_: ("Назови свою покупку", markups['cancel']),
         purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate
     ]), 
-    Command('balance', balance), 
-    Command('sum', getSum), 
-    Command('transactions', transactions),
-    Command('categories', [categories, categoryInfo]),
-    Command('purchases', [purchases, purchaseInfo]),
+    Command(['balance', 'баланс'], balance), 
+    Command(['sum', "сумма"], getSum), 
+    Command(['transactions', "транзакции"], transactions),
+    Command(['categories', 'категории'], [categories, categoryInfo]),
+    Command(['purchases', 'покупки'], [purchases, purchaseInfo]),
     Command(['delete', 'удалить транзакцию'], [
         lambda *_: ("Введи айдишку кривой транзакции", markups['cancel']),
         deleteTransaction
         ]
-    )
+    ), 
+    Command(['yearly', 'бюджет'], yearly)
 
 ]
 
