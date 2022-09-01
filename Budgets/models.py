@@ -2,10 +2,13 @@ from django.db import models
 from django.utils import timezone
 import random, string
 from dateutil.relativedelta import relativedelta
+from datetime import datetime
+from calendar import monthrange
 
 class Budget(models.Model): 
     income = models.FloatField()
     linkID = models.CharField(max_length=8, blank=True, unique=True)
+    offset = models.FloatField()
     def save(self, *args, **kwargs):
         if (self.pk == None):
             self.linkID = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
@@ -26,8 +29,9 @@ class Budget(models.Model):
         return 'Budget ' + self.linkID
 
     def get_balance(self):
-        balance = 0
-        transactions = Transaction.objects.filter(budget = self)
+        balance = self.offset
+        today = datetime.now().date()
+        transactions = Transaction.objects.filter(budget = self, date__gte=today.replace(day=1), date__lte=today.replace(day=monthrange(today.year, today.month)[1]))
         for transaction in transactions:
             balance += transaction.amount
         return balance

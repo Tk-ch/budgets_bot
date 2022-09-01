@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = ('pk','income', 'linkID')
+        fields = ('pk','income', 'linkID', 'offset')
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:

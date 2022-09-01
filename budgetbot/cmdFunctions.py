@@ -181,9 +181,10 @@ def getSum(user, _):
         return noBudget(user)
     today = datetime.now()
     data = user.getSum(today)
-    if not data: 
+    offset = user.getBudget()
+    if not data or not offset: 
         return 'Остаток не доступен, прикол', markups['default']
-    return 'Остаток (прогноз) в этом месяце: ' + str(data['sum']), markups['default']
+    return 'Остаток (прогноз) в этом месяце: ' + str(data['sum'] + offset['offset']), markups['default']
 
 def transactions(user, _):
     if user.budget[0] == '':
@@ -357,7 +358,7 @@ def completePurchase(user, message):
 
 def yearly(user, _):
     out = ''
-    s = 0
+    s = user.getBudget()['offset']
     today = datetime.now()
     for i in range(today.month, 13):
         s += user.getSum(today.replace(month = i))["sum"]

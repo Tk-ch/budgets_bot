@@ -33,6 +33,13 @@ class User():
         self.budget[1] = data['pk']
         return True
 
+    def getBudget(self):
+        data = api.read('budget', self.budget[0])
+        if not data: 
+            return False
+        return data
+
+
     def listCategories(self, data = {}):
         return api.read('category', self.budget[0], data)
 

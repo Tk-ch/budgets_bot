@@ -3,7 +3,6 @@ from django.template import loader
 from ..models import Budget, Transaction, Purchase, Category
 from datetime import datetime
 from calendar import monthrange
-from collections import OrderedDict
 
 def monthly_view(request, linkID):
     template = loader.get_template('budgets/budgets.html')
@@ -12,8 +11,8 @@ def monthly_view(request, linkID):
 
     today = datetime.now().date()
     
-    transactions = Transaction.objects.filter(date__gte=today.replace(day=1), date__lte=today.replace(day=monthrange(today.year, today.month)[1]))
-    purchases = Purchase.objects.filter(date__gte=today.replace(day=1), date__lte=today.replace(day=3))
+    transactions = Transaction.objects.filter(budget = budget, date__gte=today.replace(day=1), date__lte=today.replace(day=monthrange(today.year, today.month)[1]))
+    purchases = Purchase.objects.filter(budget = budget, date__gte=today.replace(day=1), date__lte=today.replace(day=3))
 
     categories = Category.objects.filter(budget=budget).order_by('-amount')
 
