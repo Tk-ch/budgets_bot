@@ -32,16 +32,16 @@ def setup(message):
 def handle(message):
     text, user = setup(message)
     text = text.lstrip('/')
-    msg, markup = user.parse(text)
-    bot.send_message(user.chat, msg, reply_markup=markup)
+    msg_info = user.parse(text)
+    sendMessage(user, msg_info)
     
     
-def sendMessage(chat, message_info, user):
-  msg = bot.send_message(chat, message_info.text, message_info.markup)
+def sendMessage(user, message_info):
+  msg = bot.send_message(user.chat, message_info.text, message_info.markup)
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    telebot.apihelper.call_later(10, reset_markup, msg, user)
+    telebot.apihelper.call_later(15, reset_markup, msg, user)
 
 def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
