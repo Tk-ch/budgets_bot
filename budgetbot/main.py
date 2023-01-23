@@ -42,14 +42,15 @@ def sendMessage(user, message_info):
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    asyncio.run(reset_markup(15, msg, user))
+    asyncio.run(reset_markup(5, msg, user))
 
 def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
   
 async def reset_markup(time, msg, user):
+  print(f"Editing reply {msg}, chat {msg.chat.id}, message {msg.message_id}")
   await asyncio.sleep(time)
-  bot.edit_message_reply_markup(msg.chat.id, msg.message_id, reply_markup = getMarkup(user))
+  bot.edit_message_reply_markup(chat_id = msg.chat.id, message_id = msg.message_id, reply_markup = getMarkup(user))
   
 
     
