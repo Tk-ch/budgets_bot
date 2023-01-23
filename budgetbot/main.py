@@ -1,18 +1,18 @@
 import telebot, pickle, atexit
 from user import User, users
-from conf import API_KEY
+from conf import API_KEY, DATA
 from cmdFunctions import getMarkup
 
 bot = telebot.TeleBot(API_KEY)
 
-with open('budgetbot/data.p', 'rb') as fp:
+with open(DATA, 'rb') as fp:
     users = pickle.load(fp)
 
 def save_users():
     for user in users:
         users[user].commandData = {}
         users[user].command = None
-    with open('budgetbot.p', 'wb') as fp:
+    with open(DATA, 'wb') as fp:
         pickle.dump(users, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
 def makeUser(chat):
