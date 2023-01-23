@@ -46,7 +46,7 @@ def sendMessage(user, message_info):
       cancel_task(user)
     asyncio.run(reset_task(user))
 
-async def reset_task(user):
+async def reset_task(user, msg):
   user.task = asyncio.create_task(reset_markup(15, msg, user))
   await user.task
 
