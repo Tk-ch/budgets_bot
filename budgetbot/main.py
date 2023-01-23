@@ -48,9 +48,9 @@ def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
   
 async def reset_markup(time, msg, user):
-  print(f"Editing reply {msg}, chat {msg.chat.id}, message {msg.message_id}")
+  print(f"Editing reply {msg}, chat {user.chat}, message {msg.message_id}")
   await asyncio.sleep(time)
-  bot.edit_message_reply_markup(chat_id = msg.chat.id, message_id = msg.message_id, reply_markup = getMarkup(user))
+  bot.edit_message_reply_markup(chat_id = user.chat, message_id = msg.message_id, reply_markup = getMarkup(user))
   
 
     
