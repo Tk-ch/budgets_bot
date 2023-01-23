@@ -1,4 +1,5 @@
 from cmdFunctions import *
+import MessageInfo
 
 class Command(): 
     def __init__(self, name, func):
@@ -13,7 +14,7 @@ class Command():
             message = result
             markup = getMarkup(user)
         finally:
-            return message, markup
+            return MessageInfo(message, markup, False, True)
 
     def filterCommand(command, message):
         if isinstance(command.name, list):
