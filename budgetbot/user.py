@@ -8,6 +8,7 @@ class User():
     budget = ['', 0]
     chat = 0
     command = None
+    task = None
     commandData = {}
     deletableMessages = []
 

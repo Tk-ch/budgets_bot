@@ -37,18 +37,29 @@ def handle(message):
     sendMessage(user, msg_info)
     
     
-def sendMessage(user, message_info):
+async def sendMessage(user, message_info):
   msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    asyncio.run(reset_markup(5, msg, user))
+    if (user.task is not None) cancel_task(user)
+    task = asyncio.create_task(reset_markup(15, msg, user))
+    user.task = task
 
 async def reset_markup(time, msg, user):
-  await asyncio.sleep(time)
-  bot.send_message(user.chat, msg.text, reply_markup = getMarkup(user))
-  deleteMessage(msg)
-  
+  try:
+    await asyncio.sleep(time)
+    bot.send_message(user.chat, msg.text, reply_markup = getMarkup(user))
+    deleteMessage(msg)
+  except asyncio.CancelledError:
+    pass
+  finally:
+    user.task = None
+
+
+
+def cancel_task(user):
+    user.task.cancel()
 
 def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
