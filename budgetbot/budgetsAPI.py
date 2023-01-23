@@ -26,4 +26,4 @@ class APIHandler():
     def delete(objectType, pk):
         return APIHandler.request(delete, objectType, 'delete', pk)
 
-# testing deployment using git
+# testing git deployment
