@@ -37,7 +37,7 @@ def handle(message):
     sendMessage(user, msg_info)
     
     
-async def sendMessage(user, message_info):
+def sendMessage(user, message_info):
   msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
