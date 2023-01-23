@@ -3,7 +3,7 @@ from user import User, users
 from conf import API_KEY, DATA
 from cmdFunctions import getMarkup
 import threading
-
+last_message = None
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -39,16 +39,21 @@ def handle(message):
     
     
 def sendMessage(user, message_info):
+  global last_message
+  if last_message:
+        last_message.cancel()
   msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    threading.Timer(15, reset_markup, args=[msg, user]).start()
+    last_message = threading.Timer(15, reset_markup, args=[msg, user])
+    last_message.start()
 
 def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
   
 def reset_markup(msg, user):
+  print(msg)
   bot.edit_message_reply_markup(msg.chat.id, msg.message_id, reply_markup = getMarkup(user))
   
 
