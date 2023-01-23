@@ -8,7 +8,7 @@ bot = telebot.TeleBot(API_KEY)
 with open('budgetbot/data.p', 'rb') as fp:
     users = pickle.load(fp)
 
-  def save_users():
+def save_users():
     for user in users:
         users[user].commandData = {}
         users[user].command = None
