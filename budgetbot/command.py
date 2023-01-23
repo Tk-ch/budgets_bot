@@ -1,5 +1,5 @@
 from cmdFunctions import *
-import MessageInfo
+from MessageInfo import MessageInfo
 
 class Command(): 
     def __init__(self, name, func):
