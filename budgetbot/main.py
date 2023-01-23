@@ -42,7 +42,8 @@ async def sendMessage(user, message_info):
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    if (user.task is not None) cancel_task(user)
+    if (user.task is not None):
+      cancel_task(user)
     task = asyncio.create_task(reset_markup(15, msg, user))
     user.task = task
 
