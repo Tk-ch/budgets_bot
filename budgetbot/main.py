@@ -2,6 +2,8 @@ import telebot, pickle, atexit
 from user import User, users
 from conf import API_KEY, DATA
 from cmdFunctions import getMarkup
+import threading
+
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -41,7 +43,7 @@ def sendMessage(user, message_info):
   if message_info.delete:
     bot.register_next_step_handler(msg, deleteMessage)
   if message_info.reset_markup:
-    telebot.apihelper.call_later(15, reset_markup, msg, user)
+    threading.Timer(15, reset_markup, args=[msg, user]).start()
 
 def deleteMessage(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
