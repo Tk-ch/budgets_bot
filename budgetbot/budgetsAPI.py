@@ -1,7 +1,5 @@
 from requests import post, get, delete
-import conf
-
-DOMAIN = 'http://localhost:8000/budgets/api/'
+from conf import DOMAIN
 
 class APIHandler():
 
