@@ -46,8 +46,8 @@ def sendMessage(user, message_info):
 
 async def reset_markup(time, msg, user):
   await asyncio.sleep(time)
-  m = bot.send_message(user.chat, ".", reply_markup = getMarkup(user))
-  deleteMessage(m)
+  bot.send_message(user.chat, msg.text, reply_markup = getMarkup(user))
+  deleteMessage(msg)
   
 
 def deleteMessage(msg):
