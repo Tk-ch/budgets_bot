@@ -44,8 +44,11 @@ def sendMessage(user, message_info):
   if message_info.reset_markup:
     if (user.task is not None):
       cancel_task(user)
-    task = asyncio.create_task(reset_markup(15, msg, user))
-    user.task = task
+    asyncio.run(reset_task(user))
+
+async def reset_task(user):
+  user.task = asyncio.create_task(reset_markup(15, msg, user))
+  await user.task
 
 async def reset_markup(time, msg, user):
   try:
