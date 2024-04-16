@@ -1,8 +1,9 @@
 import json
+from conf import FOLDER
 from string import Template
 
 def load_locale(locale): # locale as in "ua", "en", etc
-    f = open('locale_' + locale + '.json')
+    f = open(FOLDER + 'locale_' + locale + '.json')
     return json.load(f)
     
 locale = 'ua'
