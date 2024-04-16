@@ -1,5 +1,6 @@
 from cmdFunctions import *
 from MessageInfo import MessageInfo
+from strings import *
 
 class Command(): 
     def __init__(self, name, func):
@@ -43,77 +44,55 @@ class Command():
                 user.commandData['amount'] = amount
                 categories = user.listCategories()
                 if not categories: 
-                    return "Блин, это ж число но категории сдохли", markups['default']
+                    return get_string("error_categories_unavailable"), markups['default']
                 markup = ReplyKeyboardMarkup()
-                markup.add("Создать")
+                markup.add(get_string("mrkp_create"))
                 rows = [category['name'] for category in categories if category['visible']]
                 markup.add(*rows, row_width=2)
-                markup.add("Отмена")
-                return "Выглядит как транзакция, выбери категорию", markup
+                markup.add(get_string("mrkp_cancel"))
+                return get_string('action_transaction_create_from_number'), markup
             except:
-                return "Не понял"
+                return get_string("error_invalid_command")
 
 commands = [
-    Command(['start'], lambda *_: """Привет! Команды тута
-         /create - создаёт бюджет  
-         /connect - соединяет тебя с существующим бюджетом
-         /balance - показывает текущий баланс
-         /sum - рассчитывает остаток в конце месяца (от дохода отнимаются все траты по категориям)
-         /category - добавить категорию
-         /transactions - вывести транзакции
-         /categories - вывести категории и их остатки за месяц
-         /taxes - taxes
-     Для добавления транзакций можно ввести любое число
-     Транзакции следует вводить отрицательными - так проще вводить частые расходы без минуса, а редкие доходы с минусом
-         TODO: 
-         /yearly - годовой прогноз
-         /addpurchase - добавить запланированную покупку
-         /completepurchase - выполнить покупку (создастся транзакция по цене покупки)
-         /removepurchase - удалить покупку"""), 
-    Command(['create', 'создать бюджет'], [
-    lambda user, _: ("Один бюджет уже подключен. Создание нового бюджета его отключит. Введи сумму если хочешь продолжить", markups['cancel']) if user.budget != '' else ("Введи сумму бюджета", markups['cancel']),
+    Command(['start'], lambda *_:get_string("message_help")), 
+    Command(['create', get_string("mrkp_create_budget").lower()], [
+    lambda user, _: (get_string("message_create_budget_already_created"), markups['cancel']) if user.budget != '' else (get_string("message_create_budget"), markups['cancel']),
     create
     ]),
-    Command(['connect', 'подключить'], [
-    lambda user, _: ("Точно? Один бюджет уже подключен. Введи ID:", markups['cancel']) if user.budget[0] != '' else ("Введи ID: ", markups['cancel']), 
+    Command(['connect', get_string("mrkp_join_budget").lower()], [
+    lambda user, _: (get_string("message_connect_budget_already_connected"), markups['cancel']) if user.budget[0] != '' else (get_string("message_connect_budget"), markups['cancel']), 
     connect
     ]), 
-    Command(['cancel', 'отмена'], cancel), 
+    Command(['cancel', get_string("mrkp_cancel").lower()], cancel), 
     Command('taxes', 
-    [lambda *_: ("""Сколько процентов нологов плотить? 
-#         до 471$ - 25%
-#         471$ - 718$ - 50%
-#         718$ - 1224$ - 75%
-#         1224$+ - 100%
-#         ========================
-#         Введи доход в гривнах:
-#         """, markups['cancel']), 
+    [lambda *_: (get_string("message_taxes"), markups['cancel']), 
     taxesIncome,
     taxesCalculate]
     ), 
-    Command(['category', 'добавить категорию'],
+    Command(['category', get_string("mrkp_add_category").lower()],
     [
-        lambda *_:("Введи имя категории", markups['cancel']),
+        lambda *_:(get_string("action_category_enter_name"), markups['cancel']),
         categoryName, categoryBudget
     ]
     ), 
-    Command(['transaction', 'добавить транзакцию'], 
+    Command(['transaction', get_string("mrkp_add_transaction").lower()], 
     [
-        lambda *_: ("Введи количество деняк", markups['cancel']), 
+        lambda *_: (get_string("message_transaction_amount"), markups['cancel']), 
         transactionCategory, transactionCreate
     ]),
-    Command(['purchase', 'добавить покупку'], [
-        lambda *_: ("Назови свою покупку", markups['cancel']),
+    Command(['purchase', get_string("mrkp_add_purchase").lower()], [
+        lambda *_: (get_string("action_purchase_enter_comment"), markups['cancel']),
         purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate
     ]), 
-    Command(['balance', 'баланс'], balance), 
-    Command(['sum', "сумма"], getSum), 
-    Command(['transactions', "транзакции"], transactions),
-    Command(['categories', 'категории'], [categories, categoryInfo]),
-    Command(['purchases', 'покупки'], [purchases, purchaseInfo]),
-    Command(['delete', 'удалить транзакцию'], [
-        lambda *_: ("Введи айдишку кривой транзакции", markups['cancel']),
+    Command(['balance', get_string("mrkp_balance").lower()], balance), 
+    Command(['sum', get_string("mrkp_sum").lower()], getSum), 
+    Command(['transactions', get_string("mrkp_transactions").lower()], transactions),
+    Command(['categories', get_string("mrkp_categories").lower()], [categories, categoryInfo]),
+    Command(['purchases', get_string("mrkp_purchases").lower()], [purchases, purchaseInfo]),
+    Command(['delete', get_string("mrkp_transaction_delete").lower()], [
+        lambda *_: (get_string("message_transaction_id"), markups['cancel']),
         deleteTransaction
         ]
     ), 
-    Command(['yearly', 'бюджет'], yearly)]
+    Command(['yearly', get_string("mrkp_budget").lower()], yearly)]

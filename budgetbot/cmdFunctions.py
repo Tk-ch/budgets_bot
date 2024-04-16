@@ -3,19 +3,20 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
 import math
+from strings import *
 
 markups = {
-    'start': ReplyKeyboardMarkup(True, True).row('Создать бюджет', 'Присоединить'), 
+    'start': ReplyKeyboardMarkup(True, True).row(get_string("mrkp_create_budget"), get_string("mrkp_join_budget")), 
     'none': ReplyKeyboardRemove(), 
-    'cancel': ReplyKeyboardMarkup(True, True).add("Отмена"), 
-    'default': ReplyKeyboardMarkup(True, True).add('Добавить транзакцию').add("Баланс", "Сумма", "Бюджет").add('Категории', "Покупки", "Транзакции", row_width=3).row('Добавить категорию', 'Добавить покупку'),
-    'manage': ReplyKeyboardMarkup(True, True).row('Изменить', 'Удалить').add('Отмена')
+    'cancel': ReplyKeyboardMarkup(True, True).add(get_string("mrkp_cancel")), 
+    'default': ReplyKeyboardMarkup(True, True).add(get_string("mrkp_add_transaction")).add(get_string("mrkp_balance"), get_string("mrkp_sum"), get_string("mrkp_budget")).add(get_string("mrkp_categories"), get_string("mrkp_purchases"), get_string("mrkp_transactions"), row_width=3).row(get_string("mrkp_add_category"), get_string("mrkp_add_purchase")),
+    'manage': ReplyKeyboardMarkup(True, True).row(get_string("mrkp_edit"), get_string("mrkp_delete")).add(get_string("mrkp_cancel"))
 }
 
 def noBudget(user):
     user.cmd = {}
     user.questions = []
-    return "Сначала нужно создать или присоединить бюджет", markups['start']
+    return get_string("error_no_budget"), markups['start']
 
 def getMarkup(user):
          if user.budget[0] != '':
@@ -25,33 +26,33 @@ def getMarkup(user):
 def connect(user, message):
     budgetID = message.strip()
     if user.connectBudget(budgetID):
-        return f'Бюджет {budgetID} успешно присоединен', markups['default']
-    return 'Ошибка! Бюджета не существует или @Tkuch что то запорол'
+        return get_string("budget_connected", budgetID=budgetID), markups['default']
+    return get_string("error_connecting_budget", budgetID=budgetID)
 
 def create(user, message):
     try:
         income = float(message.strip())
         budget = user.createBudget(income)
         if not budget: #if budget not created, inform user
-            return "Ошибка - бюджет не создан, пиши этому дибилу @Tkuch", markups['start']
-        return "Бюджет создан - ID: " + str(budget), markups['default']
+            return get_string("error_creating_budget"), markups['start']
+        return get_string("budget_created", budgetID=str(budget)), markups['default']
     except:
         user.command = iter([create])
-        return "Ошибка - введи число", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
     
 def cancel(user, _):
     user.command = None
     user.commandData = {}
-    return "Охрана отмена", getMarkup(user)
+    return get_string("action_cancel"), getMarkup(user)
 
 def taxesIncome(user, message):
     try:
         income = float(message)
         user.commandData['income'] = income
-        return "Введи процент нологов", markups['cancel']
+        return get_string("action_tax_enter_percent"), markups['cancel']
     except:
         user.command = iter([taxesIncome, taxesCalculate])
-        return "Не число.", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
 
 def taxesCalculate(user, message):
     try:
@@ -62,16 +63,16 @@ def taxesCalculate(user, message):
         bank_shit = 50
         tax = en + esv + bank_shit
         money = income - (tax * taxes / 100)
-        return f'Твой доход: {money} грн.'
+        return get_string("action_tax_output", money=money)
     except: 
         user.command = iter([taxesCalculate])
-        return "Не число", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
 
 def categoryName(user, message):
     if user.budget[0] == '':
         return noBudget(user)
     user.commandData['name'] = message.strip()
-    return "Теперь введи бюджет", markups['cancel']
+    return get_string("action_category_enter_budget"), markups['cancel']
 
 def categoryBudget(user, message):
     try: 
@@ -86,15 +87,15 @@ def categoryBudget(user, message):
             amount = user.commandData.pop('amount')
             transaction = user.createTransaction(data['name'], user.commandData.pop('amount'))
             if transaction:
-                out = f'; транзакция на сумму {amount} также создана'
+                out = get_string("action_transaction_created_with_category", amount=amount)
             else:
                 out = ''
         except:
             out = ''
-        return f"Категория {data['name']} с бюджетом {data['amount']} была создана/отредактирована" + out, markups['default']
+        return  get_string("action_category_created", name=data['name'], amount=data['amount']) + out, markups['default']
     except:
         user.command = iter([categoryBudget])
-        return "Не число", markups['cancel']
+        return  get_string("error_not_a_number"), markups['cancel']
 
 def transactionCategory(user, message):
     if user.budget[0] == '':
@@ -104,41 +105,41 @@ def transactionCategory(user, message):
         user.commandData['amount'] = amount
     except: 
         user.command = iter([transactionCategory, transactionCreate])
-        return "Не число", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
     categories = user.listCategories()
     if not categories: 
-        return "Категории недоступны", markups['default']
+        return get_string("error_categories_unavailable"), markups['default']
     markup = ReplyKeyboardMarkup()
-    markup.add("Создать")
+    markup.add(get_string("mrkp_create"))
     rows = [category['name'] for category in categories if category['visible']]
     markup.add(*rows, row_width=2)
-    markup.add("Отмена")
-    return "Выбери категорию", markup
+    markup.add(get_string("mrkp_cancel"))
+    return get_string("action_transaction_choose_category"), markup
 
 def transactionCreate(user, message):
     category = message
     if category.lower() == 'создать':
         user.command = iter([categoryName, categoryBudget])
-        return "Как называть эту категорию", markups['cancel']
+        return get_string("action_category_enter_name"), markups['cancel']
     transaction = user.createTransaction(category, user.commandData.pop('amount'))
     if not transaction: 
-        return "Транзакция не создалась :(", markups['default']    
-    return f"Транзакция {transaction['pk']} на сумму {transaction['amount']} создана", markups['default']
+        return get_string("error_transaction_not_created"), markups['default']    
+    return get_string("action_transaction_created", id=transaction['pk'], amount=transaction['amount']), markups['default']
 
 def purchaseAmount(user, message):
     user.commandData['comment'] = message.strip()
-    return "Введи сумму этой вот покупки", markups['cancel'] 
+    return get_string("action_purchase_enter_amount"), markups['cancel'] 
 
 def purchaseYear(user, message):
     try: 
         amount = float(message)
         user.commandData['amount'] = amount
         markup = ReplyKeyboardMarkup()
-        markup.add('2022', '2023', 'Отмена', row_width=2)
-        return "Введи год покупки", markup
+        markup.add('2024', '2025', get_string("mrkp_cancel"), row_width=2)
+        return get_string("action_purchase_enter_year"), markup
     except:
         user.command = iter([purchaseYear, purchaseMonth, purchaseCreate])
-        return "Не число", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
 
 def purchaseMonth(user, message):
     try: 
@@ -146,12 +147,12 @@ def purchaseMonth(user, message):
         user.commandData['year'] = year
         markup = ReplyKeyboardMarkup()
         months = [str(i) for i in range(1, 13)]
-        markup.add(*months, 'Отмена', row_width=3)
-        return 'Введи месяц', markup
+        markup.add(*months, get_string("mrkp_cancel"), row_width=3)
+        return get_string("action_purchase_enter_month"), markup
     except Exception as e:
         print(e)
         user.command = iter([purchaseMonth, purchaseCreate])
-        return "Не число", markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
 
 def purchaseCreate(user, message):
     try: 
@@ -162,19 +163,19 @@ def purchaseCreate(user, message):
         except:
             purchase = user.createPurchase(user.commandData.pop('amount'), user.commandData.pop('comment'), datetime(user.commandData.pop('year'), month, 2))
         if not purchase:
-            return "Непонятные траблы с покупкой", markups['default']
-        return "Покупка была создана/отредактирована", markups['default']
+            return get_string("error_purchase_not_created"), markups['default']
+        return get_string("action_purchase_created"), markups['default']
     except: 
         user.command = iter([purchaseCreate])
-        return 'Да блин не число как так', markups['cancel']
+        return get_string("error_not_a_number"), markups['cancel']
 
 def balance(user, _):
     if user.budget[0] == '':
         return noBudget(user)
     data = user.getBalance()
     if not data: 
-        return 'Баланс не доступен, прикол', markups['default']
-    return 'Баланс исходя из текущих транзакций: {:.2f}'.format(data['balance']), markups['default']
+        return get_string("error_balance_not_available"), markups['default']
+    return get_string("action_balance_get", balance='{:.2f}'.format(data['balance'])), markups['default']
 
 def getSum(user, _):
     if user.budget[0] == '':
@@ -183,8 +184,8 @@ def getSum(user, _):
     data = user.getSum(today)
     offset = user.getBudget()
     if not data or not offset: 
-        return 'Остаток не доступен, прикол', markups['default']
-    return 'Остаток (прогноз) в этом месяце: ' + str(data['sum'] + offset['offset']), markups['default']
+        return get_string("error_sum_not_available"), markups['default']
+    return get_string("action_get_sum") + str(data['sum'] + offset['offset']), markups['default']
 
 def transactions(user, _):
     if user.budget[0] == '':
@@ -195,7 +196,7 @@ def transactions(user, _):
     data = user.listTransactions(first, last)
     categories = user.listCategories()
     if not data or not categories: 
-        return 'Транзакции не доступны, прикол', markups['default']
+        return get_string("error_transaction_not_available"), markups['default']
 
     catnames = {}
 
@@ -206,14 +207,14 @@ def transactions(user, _):
 
     tDict = {date: [t for t in data if dateutil.parser.parse(t['date']).date() == date] for date in tDates}
     
-    out = 'Транзакции:\n'
+    out = get_string("action_transaction_list") + '\n'
     for i in sorted(tDict.keys()):
         out += f'{i}:\n'
         for t in tDict[i]: 
             out += f'[{t["pk"]}] {catnames[t["category"]]}: {t["amount"]}\n'
         out += '\n'
 
-    return out, ReplyKeyboardMarkup(True, True).add('Отмена', 'Удалить транзакцию', row_width=1)
+    return out, ReplyKeyboardMarkup(True, True).add(get_string("mrkp_cancel"), get_string("mrkp_transaction_delete"), row_width=1)
 
 def categories(user, _):
     today = datetime.now().replace(tzinfo=None).date()
@@ -222,7 +223,7 @@ def categories(user, _):
     data = user.listTransactions(first, last)
     categories = user.listCategories()
     if not data or not categories: 
-        return 'Категории не доступны лол', markups['default'] 
+        return get_string("error_categories_unavailable"), markups['default'] 
         
     catremainders = {}
     
@@ -237,7 +238,7 @@ def categories(user, _):
 
     catnames = [category['name'] for category in categories if category['visible']]
 
-    out = 'Категории: \n'
+    out = get_string("action_category_list") + '\n'
     for category in categories: 
         if not category['visible']:
             continue 
@@ -253,8 +254,8 @@ def categories(user, _):
         else:
             bar = '▒'*30
             bar+='\n'
-        out += f"{category['name']}: Бюджет {category['amount']} / Остаток {rem}\n{bar}"
-    markup.add('Отмена')
+        out += get_string('action_category_read', name=category['name'], rem = rem, bar = bar)
+    markup.add(get_string("mrkp_cancel"))
     markup.add(*catnames, row_width=2)
     return out, markup
 
@@ -262,15 +263,15 @@ def categories(user, _):
 def purchases(user, _):
     data = user.listPurchases()
     if not data:
-        return "Покупки не доступны", markups['default']
+        return get_string("error_purchases_not_available"), markups['default']
     
     markup = ReplyKeyboardMarkup(True, True, row_width=2)
 
     pDates = set([dateutil.parser.parse(p['date']).date().replace(day=1) for p in data])
 
     pDict = {date: [p for p in data if dateutil.parser.parse(p['date']).date().replace(day=1) == date] for date in pDates}
-    out = 'Покупки:\n'
-    markup.add('Отмена')
+    out = get_string("action_purchase_list") + '\n'
+    markup.add(get_string("mrkp_cancel"))
     for i in sorted(pDict.keys()):
         out += f'{datetime.strftime(i, "%Y-%m")}:\n'
         for purchase in pDict[i]: 
@@ -294,23 +295,24 @@ def purchaseInfo(user, message):
         purchase = list(filter(lambda purchase: (message.lower().strip() in purchase['comment'].lower().strip()), data))[0]
         user.command = iter([purchaseManage])
         user.commandData['purchase'] = purchase['pk']
-        return f'Покупка: {purchase["comment"]}\nСтоимость: {purchase["amount"]}\nМесяц: {datetime.strftime(dateutil.parser.parse(purchase["date"]).date(), "%Y-%m")}', ReplyKeyboardMarkup().add('Совершить покупку').add('Изменить', "Удалить", "Отмена", row_width=2)
+        return get_string('action_purchase_read', comment = purchase["comment"], amount = purchase["amount"], month = datetime.strftime(dateutil.parser.parse(purchase["date"]).date(), "%Y-%m") ), \
+        ReplyKeyboardMarkup().add(get_string("mrkp_perform_purchase")).add(get_string("mrkp_edit"), get_string("mrkp_delete"),get_string("mrkp_cancel"), row_width=2)
     return -1
 
 def purchaseManage(user, message):
     action = message.lower().strip()
     purchase = user.commandData.pop('purchase')
-    if action == "удалить": 
+    if action == get_string("mrkp_delete").lower(): 
         user.deleteObject('purchase', purchase)
-        return 'Покупка удалена'
-    if action == "изменить":
+        return get_string("action_purchase_deleted"), markups['default']
+    if action == get_string("mrkp_edit").lower():
         user.commandData['pk'] = purchase
         user.command = iter([purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate])
-        return "Введи новый комментарий к покупке", markups['cancel']
-    if action == "совершить покупку":
+        return get_string("action_purchase_enter_comment"), markups['cancel']
+    if action == get_string("mrkp_perform_purchase").lower():
         user.commandData['pk'] = purchase
         user.command = iter([completePurchase])
-        return "Введи актуальную сумму покупки", markups['cancel']
+        return get_string("action_purchase_enter_actual_amount"), markups['cancel']
     return -1 
 
 def categoryInfo(user, message):
@@ -321,28 +323,28 @@ def categoryInfo(user, message):
         category = list(filter(lambda category: (message.lower().strip() in category['name'].lower().strip()), data))[0]
         user.command = iter([categoryManage])
         user.commandData['category'] = category['pk']
-        return f'Категория {category["name"]}\nСтоимость {category["amount"]}', markups['manage']
+        return get_string("action_category_get", name=category['name'], amount=category['amount']), markups['manage']
     return -1
 
 def categoryManage(user, message):
      action = message.lower().strip()
      category = user.commandData.pop('category')
-     if action == "удалить": 
+     if action == get_string("mrkp_delete").lower(): 
         user.deleteObject('category', category)
-        return 'Категория удалена'
-     if action == "изменить":
+        return get_string("action_category_deleted"), markups['default']
+     if action == get_string("mrkp_edit").lower():
         user.commandData['pk'] = category
         user.command = iter([categoryName, categoryBudget])
-        return "Введи новое имя категории", markups['cancel']
+        return get_string("action_category_enter_name"), markups['cancel']
      return -1
 
 def deleteTransaction(user, message):
     try:
         id = int(message)
         user.deleteObject('transaction', id)
-        return 'Транзакция удалена'
+        return get_string("action_transaction_deleted"), markups['default']
     except: 
-        return 'Не айди', markups['cancel']
+        return  get_string("error_invalid_id"), markups['cancel']
 
 def completePurchase(user, message):
     try: 
@@ -351,7 +353,7 @@ def completePurchase(user, message):
         user.updatePurchaseAmount(purchase, amount)
         user.completePurchase(purchase)
         user.createTransaction('Покупки', amount)
-        return 'Покупка совершена, транзакция на сумму ' + str(amount) + ' создана'
+        return get_string("action_purchase_performed", amount=amount)
     except: 
         user.command = iter([completePurchase])
         return 'Не число', markups['cancel']
@@ -362,5 +364,5 @@ def yearly(user, _):
     today = datetime.now()
     for i in range(today.month, 13):
         s += user.getSum(today.replace(month = i))["sum"]
-        out += f'Сумма на месяц {i}: {s}\n'
+        out += get_string("action_get_yearly", i = i, s = s)
     return out
