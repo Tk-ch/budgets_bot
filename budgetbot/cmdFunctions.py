@@ -254,7 +254,7 @@ def categories(user, _):
         else:
             bar = '▒'*30
             bar+='\n'
-        out += get_string('action_category_read', name=category['name'], rem = rem, bar = bar)
+        out += get_string('action_category_read', name=category['name'], amount = category['amount'], rem = rem, bar = bar)
     markup.add(get_string("mrkp_cancel"))
     markup.add(*catnames, row_width=2)
     return out, markup

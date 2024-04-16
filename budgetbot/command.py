@@ -15,7 +15,7 @@ class Command():
             message = result
             markup = getMarkup(user)
         finally:
-            return MessageInfo(message, markup, False, True)
+            return MessageInfo(message, markup)
 
     def filterCommand(command, message):
         if isinstance(command.name, list):
