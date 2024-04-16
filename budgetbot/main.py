@@ -1,7 +1,7 @@
 import telebot, pickle, atexit
 from user import User, users
 from conf import API_KEY, DATA
-from cmdFunctions import getMarkup
+from cmdFunctions import get_markup
 import asyncio
 
 bot = telebot.TeleBot(API_KEY)
@@ -16,7 +16,7 @@ def save_users():
     with open(DATA, 'wb') as fp:
         pickle.dump(users, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-def makeUser(chat):
+def make_user(chat):
     if chat in users:
         return users[chat]
     user = User()
@@ -26,7 +26,7 @@ def makeUser(chat):
 
 def setup(message):
     text = message.text
-    user = makeUser(message.chat.id)
+    user = make_user(message.chat.id)
     return (text, user)
 
 @bot.message_handler(content_types=['text'])
@@ -34,13 +34,13 @@ def handle(message):
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
-    sendMessage(user, msg_info)
+    send_message(user, msg_info)
     
     
-def sendMessage(user, message_info):
+def send_message(user, message_info):
   msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
   if message_info.delete:
-    bot.register_next_step_handler(msg, deleteMessage)
+    bot.register_next_step_handler(msg, delete_message)
   if message_info.reset_markup:
     if (user.task is not None):
       cancel_task(user)
@@ -53,8 +53,8 @@ async def reset_task(user, msg):
 async def reset_markup(time, msg, user):
   try:
     await asyncio.sleep(time)
-    bot.send_message(user.chat, msg.text, reply_markup = getMarkup(user), disable_notification = True)
-    deleteMessage(msg)
+    bot.send_message(user.chat, msg.text, reply_markup = get_markup(user), disable_notification = True)
+    delete_message(msg)
   except asyncio.CancelledError:
     pass
   finally:
@@ -65,7 +65,7 @@ async def reset_markup(time, msg, user):
 def cancel_task(user):
     user.task.cancel()
 
-def deleteMessage(msg):
+def delete_message(msg):
   bot.delete_message(msg.chat.id, msg.message_id)
   
 

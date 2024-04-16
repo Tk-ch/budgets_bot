@@ -13,15 +13,15 @@ markups = {
     'manage': ReplyKeyboardMarkup(True, True).row(get_string("mrkp_edit"), get_string("mrkp_delete")).add(get_string("mrkp_cancel"))
 }
 
-def noBudget(user):
+def no_budget(user):
     user.cmd = {}
     user.questions = []
     return get_string("error_no_budget"), markups['start']
 
-def getMarkup(user):
-         if user.budget[0] != '':
-             return markups['default']
-         return markups['start'] 
+def get_markup(user):
+    if user.budget[0] != '':
+        return markups['default']
+    return markups['start'] 
 
 def connect(user, message):
     budgetID = message.strip()
@@ -43,18 +43,18 @@ def create(user, message):
 def cancel(user, _):
     user.command = None
     user.commandData = {}
-    return get_string("action_cancel"), getMarkup(user)
+    return get_string("action_cancel"), get_markup(user)
 
-def taxesIncome(user, message):
+def taxes_income(user, message):
     try:
         income = float(message)
         user.commandData['income'] = income
         return get_string("action_tax_enter_percent"), markups['cancel']
     except:
-        user.command = iter([taxesIncome, taxesCalculate])
+        user.command = iter([taxes_income, taxes_calculate])
         return get_string("error_not_a_number"), markups['cancel']
 
-def taxesCalculate(user, message):
+def taxes_calculate(user, message):
     try:
         taxes = float(message)
         income = user.commandData.pop('income')
@@ -65,16 +65,16 @@ def taxesCalculate(user, message):
         money = income - (tax * taxes / 100)
         return get_string("action_tax_output", money=money)
     except: 
-        user.command = iter([taxesCalculate])
+        user.command = iter([taxes_calculate])
         return get_string("error_not_a_number"), markups['cancel']
 
-def categoryName(user, message):
+def category_name(user, message):
     if user.budget[0] == '':
-        return noBudget(user)
+        return no_budget(user)
     user.commandData['name'] = message.strip()
     return get_string("action_category_enter_budget"), markups['cancel']
 
-def categoryBudget(user, message):
+def category_budget(user, message):
     try: 
         budget = float(message.strip())
         name = user.commandData.pop('name')
@@ -94,17 +94,17 @@ def categoryBudget(user, message):
             out = ''
         return  get_string("action_category_created", name=data['name'], amount=data['amount']) + out, markups['default']
     except:
-        user.command = iter([categoryBudget])
+        user.command = iter([category_budget])
         return  get_string("error_not_a_number"), markups['cancel']
 
-def transactionCategory(user, message):
+def transaction_category(user, message):
     if user.budget[0] == '':
-        return noBudget(user)
+        return no_budget(user)
     try:
         amount = float(message.strip())
         user.commandData['amount'] = amount
     except: 
-        user.command = iter([transactionCategory, transactionCreate])
+        user.command = iter([transaction_category, transaction_create])
         return get_string("error_not_a_number"), markups['cancel']
     categories = user.listCategories()
     if not categories: 
@@ -116,21 +116,21 @@ def transactionCategory(user, message):
     markup.add(get_string("mrkp_cancel"))
     return get_string("action_transaction_choose_category"), markup
 
-def transactionCreate(user, message):
+def transaction_create(user, message):
     category = message
     if category.lower() == 'создать':
-        user.command = iter([categoryName, categoryBudget])
+        user.command = iter([category_name, category_budget])
         return get_string("action_category_enter_name"), markups['cancel']
     transaction = user.createTransaction(category, user.commandData.pop('amount'))
     if not transaction: 
         return get_string("error_transaction_not_created"), markups['default']    
     return get_string("action_transaction_created", id=transaction['pk'], amount=transaction['amount']), markups['default']
 
-def purchaseAmount(user, message):
+def purchase_amount(user, message):
     user.commandData['comment'] = message.strip()
     return get_string("action_purchase_enter_amount"), markups['cancel'] 
 
-def purchaseYear(user, message):
+def purchase_year(user, message):
     try: 
         amount = float(message)
         user.commandData['amount'] = amount
@@ -138,10 +138,10 @@ def purchaseYear(user, message):
         markup.add('2024', '2025', get_string("mrkp_cancel"), row_width=2)
         return get_string("action_purchase_enter_year"), markup
     except:
-        user.command = iter([purchaseYear, purchaseMonth, purchaseCreate])
+        user.command = iter([purchase_year, purchase_month, purchase_create])
         return get_string("error_not_a_number"), markups['cancel']
 
-def purchaseMonth(user, message):
+def purchase_month(user, message):
     try: 
         year = int(message)
         user.commandData['year'] = year
@@ -151,10 +151,10 @@ def purchaseMonth(user, message):
         return get_string("action_purchase_enter_month"), markup
     except Exception as e:
         print(e)
-        user.command = iter([purchaseMonth, purchaseCreate])
+        user.command = iter([purchase_month, purchase_create])
         return get_string("error_not_a_number"), markups['cancel']
 
-def purchaseCreate(user, message):
+def purchase_create(user, message):
     try: 
         month = int(message)
         try: 
@@ -166,20 +166,20 @@ def purchaseCreate(user, message):
             return get_string("error_purchase_not_created"), markups['default']
         return get_string("action_purchase_created"), markups['default']
     except: 
-        user.command = iter([purchaseCreate])
+        user.command = iter([purchase_create])
         return get_string("error_not_a_number"), markups['cancel']
 
 def balance(user, _):
     if user.budget[0] == '':
-        return noBudget(user)
+        return no_budget(user)
     data = user.getBalance()
     if not data: 
         return get_string("error_balance_not_available"), markups['default']
     return get_string("action_balance_get", balance='{:.2f}'.format(data['balance'])), markups['default']
 
-def getSum(user, _):
+def get_sum(user, _):
     if user.budget[0] == '':
-        return noBudget(user)
+        return no_budget(user)
     today = datetime.now()
     data = user.getSum(today)
     offset = user.getBudget()
@@ -189,7 +189,7 @@ def getSum(user, _):
 
 def transactions(user, _):
     if user.budget[0] == '':
-        return noBudget(user)
+        return no_budget(user)
     today = datetime.now().replace(tzinfo=None).date()
     first = today.replace(day = 1)
     last = first.replace(month = first.month + 1) 
@@ -287,19 +287,19 @@ def purchases(user, _):
     
     return out, markup
 
-def purchaseInfo(user, message):
+def purchase_info(user, message):
     data = user.listPurchases()
     names = [purchase['comment'].lower() for purchase in data]
     if message.lower() in names:
         #do stuff markups
         purchase = list(filter(lambda purchase: (message.lower().strip() in purchase['comment'].lower().strip()), data))[0]
-        user.command = iter([purchaseManage])
+        user.command = iter([purchase_manage])
         user.commandData['purchase'] = purchase['pk']
         return get_string('action_purchase_read', comment = purchase["comment"], amount = purchase["amount"], month = datetime.strftime(dateutil.parser.parse(purchase["date"]).date(), "%Y-%m") ), \
         ReplyKeyboardMarkup().add(get_string("mrkp_perform_purchase")).add(get_string("mrkp_edit"), get_string("mrkp_delete"),get_string("mrkp_cancel"), row_width=2)
     return -1
 
-def purchaseManage(user, message):
+def purchase_manage(user, message):
     action = message.lower().strip()
     purchase = user.commandData.pop('purchase')
     if action == get_string("mrkp_delete").lower(): 
@@ -307,26 +307,26 @@ def purchaseManage(user, message):
         return get_string("action_purchase_deleted"), markups['default']
     if action == get_string("mrkp_edit").lower():
         user.commandData['pk'] = purchase
-        user.command = iter([purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate])
+        user.command = iter([purchase_amount, purchase_year, purchase_month, purchase_create])
         return get_string("action_purchase_enter_comment"), markups['cancel']
     if action == get_string("mrkp_perform_purchase").lower():
         user.commandData['pk'] = purchase
-        user.command = iter([completePurchase])
+        user.command = iter([complete_purchase])
         return get_string("action_purchase_enter_actual_amount"), markups['cancel']
     return -1 
 
-def categoryInfo(user, message):
+def category_info(user, message):
     data = user.listCategories()
     names = [category['name'].lower() for category in data]
     if message.lower() in names:
         #do stuff markups
         category = list(filter(lambda category: (message.lower().strip() in category['name'].lower().strip()), data))[0]
-        user.command = iter([categoryManage])
+        user.command = iter([category_manage])
         user.commandData['category'] = category['pk']
         return get_string("action_category_get", name=category['name'], amount=category['amount']), markups['manage']
     return -1
 
-def categoryManage(user, message):
+def category_manage(user, message):
      action = message.lower().strip()
      category = user.commandData.pop('category')
      if action == get_string("mrkp_delete").lower(): 
@@ -334,11 +334,11 @@ def categoryManage(user, message):
         return get_string("action_category_deleted"), markups['default']
      if action == get_string("mrkp_edit").lower():
         user.commandData['pk'] = category
-        user.command = iter([categoryName, categoryBudget])
+        user.command = iter([category_name, category_budget])
         return get_string("action_category_enter_name"), markups['cancel']
      return -1
 
-def deleteTransaction(user, message):
+def delete_transaction(user, message):
     try:
         id = int(message)
         user.deleteObject('transaction', id)
@@ -346,7 +346,7 @@ def deleteTransaction(user, message):
     except: 
         return  get_string("error_invalid_id"), markups['cancel']
 
-def completePurchase(user, message):
+def complete_purchase(user, message):
     try: 
         amount = float(message)
         purchase = user.commandData.pop('pk')
@@ -355,8 +355,8 @@ def completePurchase(user, message):
         user.createTransaction('Покупки', amount)
         return get_string("action_purchase_performed", amount=amount)
     except: 
-        user.command = iter([completePurchase])
-        return 'Не число', markups['cancel']
+        user.command = iter([complete_purchase])
+        return get_string("error_not_a_number"), markups['cancel']
 
 def yearly(user, _):
     out = ''

@@ -7,23 +7,23 @@ class Command():
         self.name = name
         self.func = func
 
-    def applyDefaultMarkup(user, message):
+    def apply_default_markup(user, message):
         try:
-            result = Command.parseMessage(user, message)
+            result = Command.parse_message(user, message)
             message, markup = result
         except Exception as e:
             message = result
-            markup = getMarkup(user)
+            markup = get_markup(user)
         finally:
             return MessageInfo(message, markup)
 
-    def filterCommand(command, message):
+    def filter_command(command, message):
         if isinstance(command.name, list):
             return message.lower() in command.name
         return message.lower() == command.name
 
-    def parseMessage(user, message):
-        command = list(filter(lambda command: Command.filterCommand(command, message), commands))
+    def parse_message(user, message):
+        command = list(filter(lambda command: Command.filter_command(command, message), commands))
         if len(command) > 0: #command entered in a message
             if isinstance(command[0].func, list): #there's a chain of functions
                 user.command = iter(command[0].func)
@@ -40,7 +40,7 @@ class Command():
         except:
             try:
                 amount = float(message)
-                user.command = iter([transactionCreate])
+                user.command = iter([transaction_create])
                 user.commandData['amount'] = amount
                 categories = user.listCategories()
                 if not categories: 
@@ -67,32 +67,33 @@ commands = [
     Command(['cancel', get_string("mrkp_cancel").lower()], cancel), 
     Command('taxes', 
     [lambda *_: (get_string("message_taxes"), markups['cancel']), 
-    taxesIncome,
-    taxesCalculate]
+    taxes_income,
+    taxes_calculate]
     ), 
     Command(['category', get_string("mrkp_add_category").lower()],
     [
         lambda *_:(get_string("action_category_enter_name"), markups['cancel']),
-        categoryName, categoryBudget
+        category_name, category_budget
     ]
     ), 
     Command(['transaction', get_string("mrkp_add_transaction").lower()], 
     [
         lambda *_: (get_string("message_transaction_amount"), markups['cancel']), 
-        transactionCategory, transactionCreate
+        transaction_category, transaction_create
     ]),
     Command(['purchase', get_string("mrkp_add_purchase").lower()], [
         lambda *_: (get_string("action_purchase_enter_comment"), markups['cancel']),
-        purchaseAmount, purchaseYear, purchaseMonth, purchaseCreate
+        purchase_amount, purchase_year, purchase_month, purchase_create
     ]), 
     Command(['balance', get_string("mrkp_balance").lower()], balance), 
-    Command(['sum', get_string("mrkp_sum").lower()], getSum), 
+    Command(['sum', get_string("mrkp_sum").lower()], get_sum), 
     Command(['transactions', get_string("mrkp_transactions").lower()], transactions),
-    Command(['categories', get_string("mrkp_categories").lower()], [categories, categoryInfo]),
-    Command(['purchases', get_string("mrkp_purchases").lower()], [purchases, purchaseInfo]),
+    Command(['categories', get_string("mrkp_categories").lower()], [categories, category_info]),
+    Command(['purchases', get_string("mrkp_purchases").lower()], [purchases, purchase_info]),
     Command(['delete', get_string("mrkp_transaction_delete").lower()], [
         lambda *_: (get_string("message_transaction_id"), markups['cancel']),
-        deleteTransaction
+        delete_transaction
         ]
     ), 
-    Command(['yearly', get_string("mrkp_budget").lower()], yearly)]
+    Command(['yearly', get_string("mrkp_budget").lower()], yearly)
+    ]
