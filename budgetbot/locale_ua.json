@@ -38,7 +38,7 @@
     "action_tax_output": "Твій дохід: $money грн.",
 
     "action_category_enter_name": "Введи назву категорії:",
-    "action_category_enter_budget":"Тепер введи бюджет:",
+    "action_category_enter_budget":"Назва категорії: $name\nТепер введи бюджет:",
     "action_category_created":"Категорія $name з бюджетом $amount була створена/відредагована",
     "action_category_list":"Категорії:",
     "action_category_read":"$name: Бюджет $amount / Залишок $rem\n$bar",
