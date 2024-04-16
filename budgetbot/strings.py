@@ -11,5 +11,6 @@ def get_string(key, **kwargs):
     try: 
         data = load_locale(locale)
         return Template(data[key]).safe_substitute(**kwargs)
-    except:
+    except Exception as e:
+        print(e)
         return key
