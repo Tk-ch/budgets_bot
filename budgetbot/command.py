@@ -15,8 +15,8 @@ class Command():
 
     def filter_command(command, message):
         if isinstance(command.name, list):
-            return message.lower() in command.name.lower()
-        return message.lower() == command.name.lower()
+            return message.lower() in command.name
+        return message.lower() == command.name
 
     def parse_message(user, message):
         command = list(filter(lambda command: Command.filter_command(command, message), commands))
