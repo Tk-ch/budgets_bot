@@ -33,13 +33,13 @@ def handle(message):
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
-    send_message(user, msg_info)
-    if (msg_info.delete_users_message): 
-        bot.delete_message(message.chat.id, message.message_id)
     if len(user.deletable_messages) > 0:
         for message in user.deletable_messages:
             bot.delete_message(message.chat.id, message.message_id)
         user.deletable_messages = []
+    send_message(user, msg_info)
+    if (msg_info.delete_users_message): 
+        bot.delete_message(message.chat.id, message.message_id)
 
 def send_message(user, message_info): 
     print('sending message')
