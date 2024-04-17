@@ -38,7 +38,7 @@ def handle(message):
     send_message(user, msg_info)
     if (msg_info.delete_users_message): 
         bot.delete_message(message.chat.id, message.message_id)
-    if messages_to_delete.count > 0:
+    if messages_to_delete.count() > 0:
         for message in messages_to_delete:
             bot.delete_message(message.chat.id, message.message_id)
         messages_to_delete = []
