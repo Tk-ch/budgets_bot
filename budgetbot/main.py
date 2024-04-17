@@ -27,24 +27,28 @@ def setup(message):
     user = make_user(message.chat.id)
     return (text, user)
 
+messages_to_delete = []
+
 @bot.message_handler(content_types=['text'])
 def handle(message):
+    global messages_to_delete
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
     send_message(user, msg_info)
     if (msg_info.delete_users_message): 
-        print(f"Deleting message {message.message_id} with text {message.text}")
         bot.delete_message(message.chat.id, message.message_id)
+    if messages_to_delete.count > 0:
+        for message in messages_to_delete:
+            bot.delete_message(message.chat.id, message.message_id)
+        messages_to_delete = []
 
 def send_message(user, message_info): 
+    global messages_to_delete
     msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
     if message_info.delete:
-        bot.register_next_step_handler(msg, delete_message, msg)
+        messages_to_delete.append(msg)
 
-def delete_message(_newmessage, message):
-    print(f"Deleting message {message.message_id} with text {message.text}")
-    bot.delete_message(message.chat.id, message.message_id)
   
 atexit.register(save_users)
 bot.infinity_polling(skip_pending = True)
