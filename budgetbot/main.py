@@ -29,6 +29,7 @@ def setup(message):
 
 @bot.message_handler(content_types=['text'])
 def handle(message):
+    print('handling messages')
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
@@ -41,6 +42,7 @@ def handle(message):
         user.deletable_messages = []
 
 def send_message(user, message_info): 
+    print('sending message')
     msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
     if message_info.delete:
         user.deletable_messages.append(msg)
