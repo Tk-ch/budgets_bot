@@ -4,6 +4,3 @@ class MessageInfo:
     self.markup = markup
     self.delete = delete
     self.delete_users_message = delete_users_message
-    self.reset_markup = reset_markup
-    
-    

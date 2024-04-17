@@ -217,7 +217,7 @@ def transactions(user, _):
             out += f'[{t["pk"]}] {catnames[t["category"]]}: {t["amount"]}\n'
         out += '\n'
 
-    return MessageInfo(out, ReplyKeyboardMarkup(True, True).add(get_string("mrkp_cancel"), get_string("mrkp_transaction_delete"), row_width=1), delete_users_message=True, reset_markup=True)
+    return MessageInfo(out, ReplyKeyboardMarkup(True, True).add(get_string("mrkp_cancel"), get_string("mrkp_transaction_delete"), row_width=1), delete_users_message=True)
 
 def categories(user, _):
     today = datetime.now().replace(tzinfo=None).date()
@@ -260,7 +260,7 @@ def categories(user, _):
         out += get_string('action_category_read', name=category['name'], amount = category['amount'], rem = rem, bar = bar)
     markup.add(get_string("mrkp_cancel"))
     markup.add(*catnames, row_width=2)
-    return MessageInfo(out, markup, delete_users_message=True, reset_markup=True)
+    return MessageInfo(out, markup, delete_users_message=True)
 
 
 def purchases(user, _):
@@ -288,7 +288,7 @@ def purchases(user, _):
 
 
     
-    return MessageInfo(out, markup, delete_users_message=True, reset_markup=True)
+    return MessageInfo(out, markup, delete_users_message=True)
 
 def purchase_info(user, message):
     data = user.list_purchases()
@@ -299,7 +299,7 @@ def purchase_info(user, message):
         user.command = iter([purchase_manage])
         user.command_data['purchase'] = purchase['pk']
         return MessageInfo(get_string('action_purchase_read', comment = purchase["comment"], amount = purchase["amount"], month = datetime.strftime(dateutil.parser.parse(purchase["date"]).date(), "%Y-%m") ), \
-        ReplyKeyboardMarkup().add(get_string("mrkp_perform_purchase")).add(get_string("mrkp_edit"), get_string("mrkp_delete"),get_string("mrkp_cancel"), row_width=2), delete_users_message=True, reset_markup=True)
+        ReplyKeyboardMarkup().add(get_string("mrkp_perform_purchase")).add(get_string("mrkp_edit"), get_string("mrkp_delete"),get_string("mrkp_cancel"), row_width=2), delete_users_message=True)
     return -1
 
 def purchase_manage(user, message):
@@ -326,7 +326,7 @@ def category_info(user, message):
         category = list(filter(lambda category: (message.lower().strip() in category['name'].lower().strip()), data))[0]
         user.command = iter([category_manage])
         user.command_data['category'] = category['pk']
-        return MessageInfo(get_string("action_category_get", name=category['name'], amount=category['amount']), markups['manage'], delete_users_message=True, reset_markup=True)
+        return MessageInfo(get_string("action_category_get", name=category['name'], amount=category['amount']), markups['manage'], delete_users_message=True)
     return -1
 
 def category_manage(user, message):
@@ -347,7 +347,7 @@ def delete_transaction(user, message):
         user.deleteObject('transaction', id)
         return MessageInfo(get_string("action_transaction_deleted"), markups['default'], delete_users_message=True)
     except: 
-        return MessageInfo(get_string("error_invalid_id"), markups['cancel'], delete=True, reset_markup=True)
+        return MessageInfo(get_string("error_invalid_id"), markups['cancel'], delete=True)
 
 def complete_purchase(user, message):
     try: 

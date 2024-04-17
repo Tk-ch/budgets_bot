@@ -1,8 +1,6 @@
 import telebot, pickle, atexit
 from user import User, users
 from conf import API_KEY, DATA
-from cmdFunctions import get_markup
-import asyncio
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -32,8 +30,6 @@ def setup(message):
 @bot.message_handler(content_types=['text'])
 def handle(message):
     text, user = setup(message)
-    if (user.task is not None):
-        cancel_task(user)
     text = text.lstrip('/')
     msg_info = user.parse(text)
     send_message(user, msg_info)
@@ -43,32 +39,14 @@ def handle(message):
 messages_to_delete = []  
 
 def send_message(user, message_info):
+    global messages_to_delete
     msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
     if message_info.delete:
         messages_to_delete.append(msg)
         bot.register_next_step_handler(msg, delete_message)
-    if message_info.reset_markup:
-        if (user.task is not None):
-            cancel_task(user)
-        asyncio.run(reset_task(user, msg))
-
-async def reset_task(user, msg):
-  user.task = asyncio.create_task(reset_markup(15, msg, user))
-  await user.task
-
-async def reset_markup(time, msg, user):
-    try:
-        await asyncio.sleep(time)
-        bot.edit_message_reply_markup(user.chat, msg.message_id, reply_markup = get_markup(user))
-    except asyncio.CancelledError:
-        pass
-    finally:
-        user.task = None
-
-def cancel_task(user):
-    user.task.cancel()
 
 def delete_message(_):
+    global messages_to_delete
     for msg in messages_to_delete:
         bot.delete_message(msg.chat.id, msg.message_id)
     messages_to_delete = []
