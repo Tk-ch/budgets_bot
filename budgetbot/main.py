@@ -53,14 +53,16 @@ def send_message(user, message_info):
         asyncio.run(reset_task(user, msg))
 
 async def reset_task(user, msg):
+  print("started task to remove markup")
   user.task = asyncio.create_task(reset_markup(15, msg, user))
   await user.task
 
 async def reset_markup(time, msg, user):
     try:
         await asyncio.sleep(time)
+        print("resetting markup")
         message = bot.send_message(user.chat, msg.text, reply_markup = get_markup(user), disable_notification = True)
-        delete_message(message)
+        bot.delete_message(message.chat.id, message.message_id)
     except asyncio.CancelledError:
         pass
     finally:
@@ -69,6 +71,7 @@ async def reset_markup(time, msg, user):
 
 
 def cancel_task(user):
+    print("task should be cancelled")
     user.task.cancel()
 
 def delete_message():
