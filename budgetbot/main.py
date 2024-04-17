@@ -32,11 +32,11 @@ def handle(message):
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
+    if (msg_info.delete_users_message): 
+        user.deletable_messages.append(message)
     if user.command == None:
         delete_messages(user)
     send_message(user, msg_info)
-    if (msg_info.delete_users_message): 
-        bot.delete_message(message.chat.id, message.message_id)
 
 def delete_messages(user):
     if len(user.deletable_messages) > 0:
