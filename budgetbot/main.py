@@ -29,20 +29,22 @@ def setup(message):
 
 @bot.message_handler(content_types=['text'])
 def handle(message):
-    print('handling messages')
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
-    if len(user.deletable_messages) > 0:
-        for message in user.deletable_messages:
-            bot.delete_message(message.chat.id, message.message_id)
-        user.deletable_messages = []
+    if user.command == None:
+        delete_messages(user)
     send_message(user, msg_info)
     if (msg_info.delete_users_message): 
         bot.delete_message(message.chat.id, message.message_id)
 
+def delete_messages(user):
+    if len(user.deletable_messages) > 0:
+        for m in user.deletable_messages:
+            bot.delete_message(m.chat.id, m.message_id)
+        user.deletable_messages = []
+
 def send_message(user, message_info): 
-    print('sending message')
     msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
     if message_info.delete:
         user.deletable_messages.append(msg)
