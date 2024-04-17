@@ -35,21 +35,14 @@ def handle(message):
     send_message(user, msg_info)
     if (msg_info.delete_users_message): 
         bot.delete_message(message.chat.id, message.message_id)
-    
-messages_to_delete = []  
 
-def send_message(user, message_info):
-    global messages_to_delete
+def send_message(user, message_info): 
     msg = bot.send_message(user.chat, message_info.text, reply_markup=message_info.markup)
     if message_info.delete:
-        messages_to_delete.append(msg)
-        bot.register_next_step_handler(msg, delete_message)
+        bot.register_next_step_handler(msg, delete_message, message=msg)
 
-def delete_message(_):
-    global messages_to_delete
-    for msg in messages_to_delete:
-        bot.delete_message(msg.chat.id, msg.message_id)
-    messages_to_delete = []
+def delete_message(_newmessage, message):
+    bot.delete_message(message.chat.id, message.message_id)
   
 atexit.register(save_users)
 bot.infinity_polling(skip_pending = True)
