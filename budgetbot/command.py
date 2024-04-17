@@ -25,7 +25,7 @@ class Command():
                 user.command = iter(command[0].func)
                 return next(user.command)(user, message)
             user.command = None
-            user.commandData = {}
+            user.command_data = {}
             return command[0].func(user, message) #there's only one function
         try: #checking if user has a chain of commands
             command = next(user.command)
@@ -37,8 +37,8 @@ class Command():
             try:
                 amount = float(message)
                 user.command = iter([transaction_create])
-                user.commandData['amount'] = amount
-                categories = user.listCategories()
+                user.command_data['amount'] = amount
+                categories = user.list_categories()
                 if not categories: 
                     return MessageInfo(get_string("error_categories_unavailable"))
                 markup = ReplyKeyboardMarkup()

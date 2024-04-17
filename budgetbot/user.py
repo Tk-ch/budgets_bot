@@ -9,8 +9,8 @@ class User():
     chat = 0
     command = None
     task = None
-    commandData = {}
-    deletableMessages = []
+    command_data = {}
+    deletable_messages = []
 
     def parse(self, msg):
         return Command.apply_default_markup(self, msg)
