@@ -9,7 +9,7 @@ with open(DATA, 'rb') as fp:
 
 def save_users():
     for user in users:
-        users[user].commandData = {}
+        users[user].command_data = {}
         users[user].command = None
     with open(DATA, 'wb') as fp:
         pickle.dump(users, fp, protocol=pickle.HIGHEST_PROTOCOL)

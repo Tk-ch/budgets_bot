@@ -40,15 +40,15 @@ class Command():
                 user.command_data['amount'] = amount
                 categories = user.list_categories()
                 if not categories: 
-                    return MessageInfo(get_string("error_categories_unavailable"))
+                    return MessageInfo(get_string("error_categories_unavailable"), delete=True)
                 markup = ReplyKeyboardMarkup()
                 markup.add(get_string("mrkp_create"))
                 rows = [category['name'] for category in categories if category['visible']]
                 markup.add(*rows, row_width=2)
                 markup.add(get_string("mrkp_cancel"))
-                return MessageInfo(get_string('action_transaction_create_from_number'), markup, delete = True)
+                return MessageInfo(get_string('action_transaction_create_from_number'), markup, delete = True, delete_users_message=True)
             except:
-                return MessageInfo(get_string("error_invalid_command"))
+                return MessageInfo(get_string("error_invalid_command"), delete=True)
 
 commands = [
     Command(['start'], lambda *_: MessageInfo(get_string("message_help"))), 
