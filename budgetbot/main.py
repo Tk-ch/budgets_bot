@@ -31,12 +31,14 @@ def setup(message):
 
 @bot.message_handler(content_types=['text'])
 def handle(message):
+    if (user.task is not None):
+        cancel_task(user)
     text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
+    send_message(user, msg_info)
     if (msg_info.delete_users_message): 
         bot.delete_message(message.chat.id, message.message_id)
-    send_message(user, msg_info)
     
     
 def send_message(user, message_info):

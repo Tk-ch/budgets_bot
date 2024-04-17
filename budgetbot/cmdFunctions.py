@@ -175,7 +175,7 @@ def purchase_create(user, message):
 def balance(user, _):
     if user.budget[0] == '':
         return no_budget(user)
-    data = user.get_bBalance()
+    data = user.get_balance()
     if not data: 
         return MessageInfo(get_string("error_balance_not_available"), markups['default'], delete=True, delete_users_message=True)
     return MessageInfo(get_string("action_balance_get", balance='{:.2f}'.format(data['balance'])), markups['default'], delete_users_message=True)
