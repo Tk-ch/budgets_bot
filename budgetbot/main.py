@@ -31,9 +31,9 @@ def setup(message):
 
 @bot.message_handler(content_types=['text'])
 def handle(message):
+    text, user = setup(message)
     if (user.task is not None):
         cancel_task(user)
-    text, user = setup(message)
     text = text.lstrip('/')
     msg_info = user.parse(text)
     send_message(user, msg_info)
