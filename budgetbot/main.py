@@ -34,6 +34,7 @@ def handle(message):
     msg_info = user.parse(text)
     send_message(user, msg_info)
     if (msg_info.delete_users_message): 
+        print(f"Deleting message {message.message_id} with text {message.text}")
         bot.delete_message(message.chat.id, message.message_id)
 
 def send_message(user, message_info): 
@@ -42,6 +43,7 @@ def send_message(user, message_info):
         bot.register_next_step_handler(msg, delete_message, msg)
 
 def delete_message(_newmessage, message):
+    print(f"Deleting message {message.message_id} with text {message.text}")
     bot.delete_message(message.chat.id, message.message_id)
   
 atexit.register(save_users)
